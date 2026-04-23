@@ -1,0 +1,2785 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>CabbyDesk Elite</title>
+<meta name="application-name" content="CabbyDesk">
+<meta name="description" content="Espace chauffeur VTC Elite — missions, clients, finances, sécurité">
+<meta name="theme-color" content="#0A0B0F" id="tc-meta">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CabbyDesk">
+
+<!-- PWA manifest + icon via blob -->
+<script>
+(function(){
+  const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="114" fill="#0A0B0F"/><rect x="256" y="0" width="256" height="512" rx="114" fill="#12141C"/><rect x="76" y="228" width="360" height="208" rx="34" fill="#1A1D2A"/><path d="M108 228V188C108 130 148 86 212 86h88c64 0 104 44 104 102v40" stroke="#4F8EF7" stroke-width="26" stroke-linecap="round" fill="none"/><rect x="104" y="272" width="76" height="46" rx="11" fill="#4F8EF7" opacity=".92"/><rect x="218" y="272" width="76" height="46" rx="11" fill="#4F8EF7" opacity=".92"/><rect x="332" y="272" width="76" height="46" rx="11" fill="#4F8EF7" opacity=".92"/><rect x="192" y="362" width="128" height="14" rx="7" fill="#2DD4A0" opacity=".55"/><circle cx="256" cy="394" r="19" fill="#2DD4A0" opacity=".85"/><circle cx="256" cy="394" r="8" fill="#0A0B0F" opacity=".6"/></svg>`;
+  const sb=new Blob([svg],{type:'image/svg+xml'});
+  const su=URL.createObjectURL(sb);
+  const c=document.createElement('canvas'); c.width=180;c.height=180;
+  const x=c.getContext('2d');
+  const img=new Image(); img.onload=()=>{
+    x.drawImage(img,0,0,180,180);
+    const al=document.createElement('link'); al.rel='apple-touch-icon'; al.href=c.toDataURL(); document.head.appendChild(al);
+  }; img.src=su;
+  const fl=document.createElement('link'); fl.rel='icon'; fl.type='image/svg+xml'; fl.href=su; document.head.appendChild(fl);
+  const mf={name:'CabbyDesk Elite',short_name:'CabbyDesk',display:'standalone',orientation:'portrait',start_url:'.',background_color:'#0A0B0F',theme_color:'#0A0B0F',icons:[{src:su,sizes:'512x512',type:'image/svg+xml',purpose:'any maskable'}]};
+  const ml=document.createElement('link'); ml.rel='manifest'; ml.href=URL.createObjectURL(new Blob([JSON.stringify(mf)],{type:'application/json'})); document.head.appendChild(ml);
+})();
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.6.0/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/signature_pad/4.1.7/signature_pad.umd.min.js"></script>
+
+<style>
+/* ══════════════════════════════════════
+   THEME TOKENS
+══════════════════════════════════════ */
+:root,[data-theme="dark"]{
+  --bg:#0A0B0F; --bg2:#12141C; --surface:#181B26; --surf2:#1E2130; --surf3:#242840;
+  --bdr:rgba(255,255,255,.07); --bdr2:rgba(255,255,255,.13); --bdr3:rgba(255,255,255,.20);
+  --txt:#E8EBF4; --txt2:#8890AA; --txt3:#4E5470;
+  --shd:rgba(0,0,0,.5); --hbg:rgba(10,11,15,.93);
+  --glass:rgba(24,27,38,.7);
+}
+[data-theme="light"]{
+  --bg:#F0F2F8; --bg2:#FFFFFF; --surface:#FFFFFF; --surf2:#E8EBF5; --surf3:#DDE1EE;
+  --bdr:rgba(0,0,0,.07); --bdr2:rgba(0,0,0,.13); --bdr3:rgba(0,0,0,.20);
+  --txt:#181B26; --txt2:#5A6080; --txt3:#9298B0;
+  --shd:rgba(0,0,0,.10); --hbg:rgba(240,242,248,.93);
+  --glass:rgba(255,255,255,.8);
+}
+:root{
+  --accent:#4F8EF7; --acd:rgba(79,142,247,.13); --acg:rgba(79,142,247,.30);
+  --green:#2DD4A0; --grd:rgba(45,212,160,.13); --gg:rgba(45,212,160,.30);
+  --red:#F76E6E; --rdd:rgba(247,110,110,.13);
+  --amber:#F7C04F; --amd:rgba(247,192,79,.15);
+  --purple:#A78BFA; --prd:rgba(167,139,250,.13);
+  --sos:#FF3B30;
+  --r:16px; --r2:12px; --r3:8px; --r4:6px;
+  --sidebar:252px;
+}
+
+/* ══ RESET ══ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;overflow-x:hidden;-webkit-tap-highlight-color:transparent;transition:background .3s,color .3s;}
+::-webkit-scrollbar{width:3px;}
+::-webkit-scrollbar-thumb{background:var(--surf3);border-radius:3px;}
+[data-theme=dark] input[type=date],[data-theme=dark] input[type=time]{color-scheme:dark;}
+[data-theme=light] input[type=date],[data-theme=light] input[type=time]{color-scheme:light;}
+
+/* ══ LAYOUT ══ */
+.shell{padding-bottom:90px;min-height:100vh;}
+@media(min-width:900px){
+  .shell{display:flex;padding-bottom:0;}
+  .sidebar{display:flex!important;}
+  .tab-bar,.mob-hdr{display:none!important;}
+  .main-col{margin-left:var(--sidebar);flex:1;min-width:0;}
+  .dbar{display:flex!important;}
+}
+
+/* ══ SIDEBAR ══ */
+.sidebar{
+  display:none;position:fixed;top:0;left:0;bottom:0;width:var(--sidebar);
+  background:var(--bg2);border-right:1px solid var(--bdr);
+  flex-direction:column;padding:24px 12px;z-index:100;
+  transition:background .3s,border-color .3s;
+}
+.sb-logo{display:flex;align-items:center;gap:10px;padding:0 8px;margin-bottom:24px;}
+.logo-mk{
+  width:38px;height:38px;border-radius:11px;flex-shrink:0;
+  background:linear-gradient(135deg,var(--accent),#7B6EF7);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 12px rgba(79,142,247,.35);
+}
+.logo-txt{font-size:1.05rem;font-weight:800;letter-spacing:-.4px;}
+.logo-txt em{color:var(--accent);font-style:normal;}
+.logo-ver{font-size:.58rem;font-weight:600;color:var(--txt3);background:var(--acd);padding:1px 6px;border-radius:4px;margin-left:4px;text-transform:uppercase;letter-spacing:.5px;}
+.sb-nav{display:flex;flex-direction:column;gap:2px;flex:1;}
+.sb-sec{font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--txt3);padding:12px 10px 6px;}
+.sb-item{
+  display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--r3);
+  cursor:pointer;color:var(--txt2);font-size:.86rem;font-weight:500;transition:all .18s;position:relative;
+}
+.sb-item:hover{background:var(--surf2);color:var(--txt);}
+.sb-item.active{background:var(--acd);color:var(--accent);font-weight:600;}
+.sb-item .si{font-size:.95rem;width:18px;text-align:center;}
+.sb-badge{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:.58rem;font-weight:700;background:var(--red);color:#fff;padding:1px 5px;border-radius:8px;min-width:16px;text-align:center;}
+.sb-sep{height:1px;background:var(--bdr);margin:8px 6px;}
+.sb-foot{padding:12px;background:var(--surf2);border:1px solid var(--bdr);border-radius:var(--r2);margin-top:8px;}
+.sf-name{font-size:.82rem;font-weight:700;}
+.sf-sub{font-size:.68rem;color:var(--txt3);margin-top:2px;}
+
+/* ══ MOBILE HEADER ══ */
+.mob-hdr{
+  position:sticky;top:0;z-index:50;padding:14px 18px 10px;
+  background:var(--hbg);backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);
+  border-bottom:1px solid var(--bdr);
+  display:flex;justify-content:space-between;align-items:center;
+  transition:background .3s,border-color .3s;
+}
+.mh-l{display:flex;align-items:center;gap:8px;}
+.mh-r{display:flex;align-items:center;gap:8px;}
+.dchip{font-family:'DM Mono',monospace;font-size:.66rem;color:var(--txt2);background:var(--surf2);padding:4px 10px;border-radius:20px;border:1px solid var(--bdr);}
+.hdrbtn{width:32px;height:32px;border-radius:50%;border:1px solid var(--bdr);background:var(--surf2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.9rem;transition:all .2s;flex-shrink:0;}
+.hdrbtn:hover{background:var(--surf3);}
+.sos-btn{background:rgba(255,59,48,.15)!important;border-color:rgba(255,59,48,.3)!important;color:var(--sos)!important;font-size:.75rem!important;font-weight:700!important;font-family:'DM Sans',sans-serif;letter-spacing:.5px;}
+
+/* Desktop bar */
+.dbar{display:none;padding:26px 36px 0;justify-content:space-between;align-items:flex-end;margin-bottom:24px;}
+.page-title{font-size:1.5rem;font-weight:800;letter-spacing:-.5px;}
+.page-sub{font-size:.8rem;color:var(--txt3);margin-top:3px;}
+.dbar-r{display:flex;align-items:center;gap:8px;}
+
+/* ══ VIEWS ══ */
+.view{display:none;animation:fu .25s ease;}
+.view.active{display:block;}
+@keyframes fu{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.vi{padding:16px;max-width:740px;margin:0 auto;}
+@media(min-width:600px){.vi{padding:20px 24px;}}
+@media(min-width:900px){.vi{padding:0 36px 48px;max-width:960px;}}
+
+/* ══ GRIDS ══ */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+@media(max-width:420px){.g3{grid-template-columns:1fr 1fr;}.g3>:last-child{grid-column:span 2;}.g4{grid-template-columns:1fr 1fr;}}
+
+/* ══ CARDS ══ */
+.card{background:var(--surface);border:1px solid var(--bdr);border-radius:var(--r);padding:18px;margin-bottom:12px;transition:background .3s,border-color .3s;}
+.card.ac{border-color:rgba(79,142,247,.3);background:linear-gradient(135deg,rgba(79,142,247,.06),var(--surface) 60%);}
+.card.gc{border-color:rgba(45,212,160,.3);background:linear-gradient(135deg,rgba(45,212,160,.05),var(--surface) 60%);}
+.card.rc{border-color:rgba(247,110,110,.3);background:linear-gradient(135deg,rgba(247,110,110,.04),var(--surface) 60%);}
+.card.am{border-color:rgba(247,192,79,.3);background:linear-gradient(135deg,rgba(247,192,79,.05),var(--surface) 60%);}
+
+/* ══ SECTION LABEL ══ */
+.slbl{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:1.1px;color:var(--txt3);margin-bottom:8px;padding-left:2px;}
+
+/* ══ FORM ══ */
+.fg{margin-bottom:11px;}
+label{display:block;font-size:.64rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--txt3);margin-bottom:6px;}
+input,textarea,select{
+  width:100%;background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r2);
+  padding:12px 13px;color:var(--txt);font-family:'DM Sans',sans-serif;font-size:16px;
+  outline:none;appearance:none;transition:border-color .18s,box-shadow .18s,background .3s;
+}
+input::placeholder,textarea::placeholder{color:var(--txt3);font-size:.86rem;}
+input:focus,textarea:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--acd);}
+textarea{resize:none;line-height:1.5;font-size:.9rem;}
+select option{background:var(--bg2);color:var(--txt);}
+.iw{position:relative;}
+.ii{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--txt3);font-size:.85rem;pointer-events:none;line-height:1;}
+.ii~input,.ii~select{padding-left:35px;}
+
+/* ══ ROUTE BLOCK ══ */
+.rblk{background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r2);overflow:hidden;}
+.rrow{display:flex;align-items:center;gap:11px;padding:11px 13px;}
+.rrow+.rrow{border-top:1px solid var(--bdr);}
+.rdot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+.rda{background:var(--green);box-shadow:0 0 5px var(--green);}
+.rdb{background:var(--red);box-shadow:0 0 5px var(--red);}
+.rrow input{background:transparent;border:none;border-radius:0;padding:0;box-shadow:none!important;font-size:.9rem;flex:1;color:var(--txt);}
+
+/* ══ PRICE ROW ══ */
+.pr-row{display:flex;align-items:center;gap:10px;background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r2);padding:11px 14px;transition:border-color .18s,box-shadow .18s;}
+.pr-row:focus-within{border-color:var(--green);box-shadow:0 0 0 3px var(--grd);}
+.ppfx{font-size:.75rem;font-weight:600;color:var(--txt3);flex-shrink:0;}
+.pr-row input{background:transparent;border:none;border-radius:0;padding:0;box-shadow:none!important;font-family:'DM Mono',monospace;font-size:1.28rem;font-weight:700;color:var(--green);flex:1;text-align:right;}
+.psfx{font-size:1rem;font-weight:700;color:var(--green);flex-shrink:0;}
+
+/* ══ NET CALC BOX ══ */
+.net-box{background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r2);padding:14px;margin-top:10px;}
+.net-row{display:flex;justify-content:space-between;align-items:center;padding:3px 0;font-size:.82rem;}
+.net-row .nl{color:var(--txt2);}
+.net-row .nv{font-family:'DM Mono',monospace;font-weight:600;}
+.net-row.net-total{border-top:1px solid var(--bdr);margin-top:6px;padding-top:8px;}
+.net-row.net-total .nl{color:var(--txt);font-weight:700;}
+.net-row.net-total .nv{color:var(--green);font-size:.95rem;}
+
+/* ══ STATUS PILLS ══ */
+.status-pill{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:6px;font-size:.63rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;cursor:pointer;transition:all .18s;}
+.sp-paid{background:var(--grd);color:var(--green);border:1px solid rgba(45,212,160,.3);}
+.sp-pend{background:var(--amd);color:var(--amber);border:1px solid rgba(247,192,79,.3);}
+.sp-dot{width:5px;height:5px;border-radius:50%;background:currentColor;}
+
+/* ══ BUTTONS ══ */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:600;border-radius:var(--r2);padding:13px 17px;transition:all .18s;width:100%;}
+.btn:active{transform:scale(.97);opacity:.9;}
+.btn-p{background:var(--accent);color:#fff;box-shadow:0 4px 14px rgba(79,142,247,.3);}
+.btn-p:hover{filter:brightness(1.1);}
+.btn-s{background:var(--green);color:#0A0B0F;box-shadow:0 4px 14px rgba(45,212,160,.25);}
+.btn-s:hover{filter:brightness(1.08);}
+.btn-g{background:var(--surf2);color:var(--txt2);border:1px solid var(--bdr);}
+.btn-g:hover{background:var(--surf3);color:var(--txt);}
+.btn-d{background:var(--rdd);color:var(--red);border:1px solid rgba(247,110,110,.2);}
+.btn-a{background:var(--amd);color:var(--amber);border:1px solid rgba(247,192,79,.25);}
+.btn-sos{background:rgba(255,59,48,.15);color:var(--sos);border:2px solid rgba(255,59,48,.4);font-weight:800;letter-spacing:.5px;}
+.btn-sos:hover{background:rgba(255,59,48,.25);}
+.btn-sm{padding:7px 12px;font-size:.75rem;border-radius:var(--r3);width:auto;}
+.btn-ic{padding:8px 11px;width:auto;border-radius:var(--r3);}
+.brow{display:flex;gap:8px;}
+
+/* ══ STAT BOXES ══ */
+.srow{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:14px;}
+@media(max-width:380px){.srow{grid-template-columns:1fr 1fr;}.srow .sbox:last-child{grid-column:span 2;}}
+.sbox{background:var(--surface);border:1px solid var(--bdr);border-radius:var(--r2);padding:13px 10px;text-align:center;transition:background .3s;}
+.sval{font-family:'DM Mono',monospace;font-size:1.16rem;font-weight:700;line-height:1;}
+.slb{font-size:.58rem;color:var(--txt3);margin-top:4px;text-transform:uppercase;letter-spacing:.6px;}
+
+/* ══ SEARCH ══ */
+.sw{position:relative;margin-bottom:12px;}
+.sw .ii{top:50%;}
+.sw input{padding-left:35px;background:var(--surface);font-size:.9rem;}
+
+/* ══ HISTORY LIST ══ */
+.hl{display:flex;flex-direction:column;gap:8px;}
+.hi{background:var(--surface);border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden;transition:border-color .2s,background .3s;}
+.hi:hover{border-color:var(--bdr2);}
+.htop{display:flex;justify-content:space-between;align-items:flex-start;padding:14px;gap:10px;cursor:pointer;}
+.hleft{flex:1;min-width:0;}
+.hname{font-weight:700;font-size:.92rem;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.hph{font-size:.7rem;color:var(--txt3);margin-top:1px;font-family:'DM Mono',monospace;}
+.hmeta{display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin-top:5px;}
+.hdate{font-size:.67rem;font-weight:500;color:var(--txt3);font-family:'DM Mono',monospace;}
+.hrt{font-size:.69rem;color:var(--txt3);display:flex;align-items:center;gap:3px;margin-top:4px;}
+.hrt span{max-width:115px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;}
+.hr{text-align:right;flex-shrink:0;}
+.hpr{font-family:'DM Mono',monospace;font-size:1rem;font-weight:700;color:var(--green);}
+.hnum{font-size:.61rem;color:var(--txt3);margin-top:2px;font-family:'DM Mono',monospace;}
+.hdet{display:none;padding:0 14px 14px;}
+.hdet.open{display:block;animation:fu .2s ease;}
+.dg{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;}
+@media(max-width:420px){.dg{grid-template-columns:1fr;}}
+.df{background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r3);padding:9px 11px;}
+.dfl{font-size:.59rem;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--txt3);margin-bottom:2px;}
+.dfv{font-size:.85rem;font-weight:500;color:var(--txt);}
+.dfv.gv{color:var(--green);font-family:'DM Mono',monospace;font-weight:700;}
+.hacts{display:none;gap:7px;padding:9px 13px;border-top:1px solid var(--bdr);background:var(--bg2);}
+.hacts.open{display:flex;}
+.accbtn{width:100%;text-align:left;background:var(--surf2);border:1px solid var(--bdr);border-radius:var(--r3);padding:8px 12px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.76rem;font-weight:600;color:var(--txt2);transition:all .18s;display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.accbtn:hover{background:var(--surf3);color:var(--txt);}
+.arro{transition:transform .2s;}
+
+/* ══ CLIENTS MODULE ══ */
+.cl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;}
+@media(max-width:600px){.cl-grid{grid-template-columns:1fr;}}
+.cl-card{background:var(--surface);border:1px solid var(--bdr);border-radius:var(--r);padding:16px;cursor:pointer;transition:all .2s;}
+.cl-card:hover{border-color:var(--bdr2);transform:translateY(-1px);box-shadow:0 6px 20px var(--shd);}
+.cl-av{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,var(--accent),#7B6EF7);display:flex;align-items:center;justify-content:center;font-size:1.1rem;font-weight:700;color:#fff;flex-shrink:0;margin-bottom:10px;}
+.cl-name{font-weight:700;font-size:.92rem;}
+.cl-ph{font-size:.72rem;color:var(--txt3);font-family:'DM Mono',monospace;margin-top:2px;}
+.cl-stats{display:flex;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid var(--bdr);}
+.cl-stat{flex:1;text-align:center;}
+.cl-sv{font-family:'DM Mono',monospace;font-size:.88rem;font-weight:700;color:var(--accent);}
+.cl-sl{font-size:.58rem;color:var(--txt3);text-transform:uppercase;letter-spacing:.5px;}
+.cl-prefs{margin-top:8px;display:flex;flex-wrap:wrap;gap:4px;}
+.cl-tag{font-size:.62rem;background:var(--surf2);color:var(--txt2);padding:2px 7px;border-radius:5px;border:1px solid var(--bdr);}
+
+/* ══ SIGNATURE CANVAS ══ */
+.sig-wrap{border:2px dashed var(--bdr2);border-radius:var(--r2);background:var(--bg2);position:relative;overflow:hidden;}
+.sig-wrap canvas{display:block;width:100%;height:140px;cursor:crosshair;touch-action:none;}
+.sig-placeholder{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:.8rem;color:var(--txt3);pointer-events:none;transition:opacity .2s;}
+.sig-acts{display:flex;gap:8px;margin-top:8px;}
+
+/* ══ CA MODULE ══ */
+.ca-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+.ca-nav{display:flex;align-items:center;gap:8px;}
+.ca-nb{width:30px;height:30px;border-radius:var(--r3);background:var(--surf2);border:1px solid var(--bdr);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.88rem;color:var(--txt2);transition:all .18s;}
+.ca-nb:hover{background:var(--surf3);color:var(--txt);}
+.ca-dl{font-size:.86rem;font-weight:600;min-width:112px;text-align:center;}
+.ca-sum{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;margin-bottom:12px;}
+.ca-ent{background:var(--surface);border:1px solid var(--bdr);border-radius:var(--r2);overflow:hidden;transition:background .3s;}
+.ca-row{display:flex;align-items:center;justify-content:space-between;padding:12px 13px;gap:8px;}
+.ca-row+.ca-row{border-top:1px solid var(--bdr);}
+.ca-el{flex:1;min-width:0;}
+.ca-et{font-size:.67rem;font-family:'DM Mono',monospace;color:var(--txt3);}
+.ca-ed{font-size:.86rem;font-weight:500;color:var(--txt);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ca-er{display:flex;align-items:center;gap:7px;flex-shrink:0;}
+.ca-ea{font-family:'DM Mono',monospace;font-size:.98rem;font-weight:700;color:var(--green);}
+.cag{font-size:.59rem;font-weight:600;text-transform:uppercase;letter-spacing:.4px;padding:2px 6px;border-radius:4px;}
+.cag-c{background:var(--acd);color:var(--accent);}
+.cag-s{background:var(--grd);color:var(--green);}
+.cag-r{background:var(--rdd);color:var(--red);}
+.exp-bar{display:flex;gap:8px;margin-bottom:12px;}
+
+/* ══ PROFILE BLOCKS ══ */
+.pbanner{display:flex;align-items:center;gap:14px;background:linear-gradient(135deg,var(--surface),var(--bg2));border:1px solid var(--bdr);border-radius:var(--r);padding:18px;margin-bottom:16px;transition:background .3s;}
+.avatar{width:50px;height:50px;flex-shrink:0;border-radius:13px;background:linear-gradient(135deg,var(--accent),#7B6EF7);display:flex;align-items:center;justify-content:center;font-size:1.3rem;}
+.bn-nm{font-size:.95rem;font-weight:700;}
+.bn-sb{font-size:.71rem;color:var(--txt3);margin-top:2px;}
+.fb{background:var(--surface);border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden;margin-bottom:12px;transition:background .3s;}
+.fr{display:flex;align-items:center;gap:11px;padding:12px 14px;}
+.fr+.fr{border-top:1px solid var(--bdr);}
+.fi2{font-size:.92rem;width:20px;text-align:center;flex-shrink:0;}
+.finn{flex:1;min-width:0;}
+.finn label{margin-bottom:3px;}
+.finn input,.finn select,.finn textarea{background:transparent;border:none;border-radius:0;padding:0;font-size:.9rem;box-shadow:none!important;color:var(--txt);}
+.finn textarea{height:56px;font-size:.82rem;}
+
+/* ══ CONTROL MODE ══ */
+.ctrl-overlay{
+  position:fixed;inset:0;background:#000;z-index:9999;
+  display:none;flex-direction:column;justify-content:center;align-items:center;
+  padding:24px;
+}
+.ctrl-overlay.open{display:flex;}
+.ctrl-inner{width:100%;max-width:480px;}
+.ctrl-close{position:absolute;top:20px;right:20px;width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+
+/* ══ MODALS ══ */
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(5px);z-index:200;display:none;align-items:flex-end;justify-content:center;padding:16px;}
+.ov.open{display:flex;}
+@media(min-width:600px){.ov{align-items:center;}}
+.modal{background:var(--surface);border:1px solid var(--bdr2);border-radius:var(--r);padding:20px;width:100%;max-width:460px;animation:su .22s ease;transition:background .3s;max-height:92vh;overflow-y:auto;}
+.modal-lg{max-width:580px;}
+@keyframes su{from{transform:translateY(14px);opacity:0}to{opacity:1;transform:none}}
+.mhd{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
+.mhd h3{font-size:.95rem;font-weight:700;}
+.mrow{display:flex;gap:8px;}
+
+/* ══ TAB BAR ══ */
+.tab-bar{
+  position:fixed;bottom:0;left:0;right:0;
+  background:var(--hbg);backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);
+  border-top:1px solid var(--bdr);
+  display:grid;grid-template-columns:repeat(5,1fr);
+  padding:6px 4px calc(6px + env(safe-area-inset-bottom));z-index:100;
+  transition:background .3s,border-color .3s;
+}
+.ti{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 4px;border-radius:var(--r3);cursor:pointer;color:var(--txt3);font-size:.57rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;transition:color .18s;}
+.ti.active{color:var(--accent);}
+.tiw{width:36px;height:26px;display:flex;align-items:center;justify-content:center;border-radius:var(--r3);font-size:.95rem;transition:background .18s;}
+.ti.active .tiw{background:var(--acd);}
+
+/* ══ TOAST ══ */
+.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%) translateY(-80px);display:flex;align-items:center;gap:7px;padding:10px 18px;border-radius:30px;font-size:.82rem;font-weight:600;box-shadow:0 8px 24px var(--shd);transition:transform .35s cubic-bezier(.34,1.56,.64,1);z-index:999;white-space:nowrap;backdrop-filter:blur(12px);}
+.toast.show{transform:translateX(-50%) translateY(0);}
+.tok{background:rgba(45,212,160,.15);color:var(--green);border:1px solid rgba(45,212,160,.3);}
+.terr{background:rgba(247,110,110,.14);color:var(--red);border:1px solid rgba(247,110,110,.28);}
+.tinfo{background:rgba(79,142,247,.14);color:var(--accent);border:1px solid rgba(79,142,247,.28);}
+
+/* ══ MISC ══ */
+.div{display:flex;align-items:center;gap:8px;margin:12px 0;}
+.div::before,.div::after{content:'';flex:1;height:1px;background:var(--bdr);}
+.div span{font-size:.61rem;color:var(--txt3);text-transform:uppercase;letter-spacing:.8px;white-space:nowrap;}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:2px 7px;border-radius:5px;font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;}
+.badge-a{background:var(--acd);color:var(--accent);}
+.badge-g{background:var(--grd);color:var(--green);}
+.badge-r{background:var(--rdd);color:var(--red);}
+.badge-am{background:var(--amd);color:var(--amber);}
+.magiclbl{display:flex;align-items:center;font-size:.8rem;font-weight:600;color:var(--accent);margin-bottom:10px;}
+.pdot{width:7px;height:7px;border-radius:50%;background:var(--accent);margin-right:8px;animation:pa 2s infinite;}
+@keyframes pa{0%,100%{box-shadow:0 0 0 0 var(--acg)}50%{box-shadow:0 0 0 5px transparent}}
+.mhint{font-size:.67rem;color:var(--txt3);margin-left:auto;}
+.empty{text-align:center;padding:50px 20px;color:var(--txt3);}
+.empty .ei{font-size:2.2rem;margin-bottom:9px;opacity:.35;}
+.empty p{font-size:.82rem;}
+.ref-badge{font-family:'DM Mono',monospace;font-size:.62rem;color:var(--txt3);background:var(--surf2);padding:2px 8px;border-radius:5px;}
+.edit-banner{background:linear-gradient(135deg,rgba(247,192,79,.06),var(--surface) 60%);border:1px solid rgba(247,192,79,.28);border-radius:var(--r);padding:12px 14px;margin-bottom:12px;display:none;}
+.edit-banner-inner{display:flex;align-items:center;gap:8px;font-size:.82rem;font-weight:600;color:var(--amber);}
+
+/* Police control mode */
+.ctrl-badge{background:rgba(79,142,247,.15);border:1px solid rgba(79,142,247,.3);border-radius:var(--r);padding:14px;margin-bottom:12px;text-align:center;}
+.ctrl-law{font-size:.72rem;color:rgba(255,255,255,.5);line-height:1.6;margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.1);}
+
+/* Cloud sync status */
+.sync-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px;}
+.sync-ok{background:var(--green);box-shadow:0 0 5px var(--green);}
+.sync-off{background:var(--txt3);}
+.sync-err{background:var(--red);box-shadow:0 0 5px var(--red);}
+
+/* ── PLANNING ── */
+.plan-day-hdr{font-size:.75rem;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.8px;padding:10px 0 6px;border-bottom:1px solid var(--bdr);margin-bottom:8px;display:flex;align-items:center;gap:8px;}
+.plan-day-hdr.today{color:var(--accent);}
+.plan-item{background:var(--surface);border:1px solid var(--bdr);border-radius:var(--r2);padding:12px 13px;margin-bottom:7px;display:flex;gap:11px;align-items:flex-start;cursor:pointer;transition:border-color .18s;position:relative;}
+.plan-item:hover{border-color:var(--bdr2);}
+.plan-item.past{opacity:.5;}
+.plan-item.next-up{border-color:var(--accent);background:linear-gradient(135deg,rgba(79,142,247,.07),var(--surface) 60%);}
+.plan-item.imminent{border-color:var(--amber);background:linear-gradient(135deg,rgba(247,192,79,.07),var(--surface) 60%);}
+.plan-badge{position:absolute;right:10px;top:8px;font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;}
+.plan-time{font-family:'DM Mono',monospace;font-size:.88rem;font-weight:700;min-width:42px;flex-shrink:0;padding-top:2px;}
+.plan-body{flex:1;min-width:0;}
+.plan-name{font-weight:700;font-size:.88rem;margin-bottom:3px;}
+.plan-route{font-size:.72rem;color:var(--txt3);display:flex;align-items:center;gap:3px;margin-top:2px;}
+.plan-route span{max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;}
+.plan-meta{display:flex;align-items:center;gap:6px;margin-top:5px;}
+.plan-price{font-family:'DM Mono',monospace;font-size:.84rem;font-weight:700;color:var(--green);}
+/* ── PANNEAU ── */
+.color-pill{flex-shrink:0;padding:6px 12px;border-radius:20px;font-size:.72rem;font-weight:600;border:2px solid transparent;cursor:pointer;transition:all .18s;white-space:nowrap;}
+.color-pill.active{box-shadow:0 0 0 2px var(--accent);transform:scale(1.05);}
+.pan-hist-item{background:var(--surface);border:1px solid var(--bdr);border-radius:var(--r2);overflow:hidden;cursor:pointer;transition:border-color .18s;}
+.pan-hist-item:hover{border-color:var(--bdr2);}
+.pan-hist-item canvas,.pan-hist-item img{width:100%;display:block;}
+.pan-hist-info{padding:7px 9px;font-size:.7rem;color:var(--txt2);}
+/* ── TOGGLE SWITCH ── */
+.toggle-wrap{position:relative;width:42px;height:24px;flex-shrink:0;}
+.toggle-wrap input{opacity:0;width:0;height:0;position:absolute;}
+.toggle-track{width:42px;height:24px;border-radius:12px;background:var(--surf3);border:1px solid var(--bdr);cursor:pointer;transition:background .2s;position:relative;}
+.toggle-wrap input:checked~.toggle-track{background:var(--accent);border-color:var(--accent);}
+.toggle-thumb{position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.3);}
+.toggle-wrap input:checked~.toggle-track .toggle-thumb{left:20px;}
+/* ── STAR RATING ── */
+.star-btn{background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--surf3);transition:color .15s;padding:0 2px;line-height:1;}
+.star-btn.active{color:var(--amber);}
+/* ── CLIENT PICKER ROW ── */
+.cpick-row{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--bdr);border-radius:var(--r2);padding:12px 14px;cursor:pointer;transition:border-color .18s;}
+.cpick-row:hover{border-color:var(--accent);}
+.cpick-av{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--accent),#7B6EF7);display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:700;color:#fff;flex-shrink:0;}
+.cpick-nm{font-weight:600;font-size:.88rem;}
+.cpick-sub{font-size:.72rem;color:var(--txt3);margin-top:1px;}
+.cpick-r{margin-left:auto;font-size:.72rem;color:var(--txt3);text-align:right;}
+/* ── CLIENT CARD enriched ── */
+.cl-stars{color:var(--amber);font-size:.85rem;letter-spacing:1px;margin-top:3px;}
+.cl-co{font-size:.72rem;color:var(--accent);margin-top:2px;font-weight:600;}
+/* ── HIST ITEM in client modal ── */
+.cl-hi{background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r3);padding:9px 11px;font-size:.8rem;}
+.cl-hi-top{display:flex;justify-content:space-between;align-items:center;}
+.cl-hi-rt{font-size:.7rem;color:var(--txt3);margin-top:3px;}
+
+
+.badge-arch{background:rgba(80,84,106,.2);color:var(--txt3);border:1px solid rgba(80,84,106,.3);}
+/* ── TAGS ── */
+.tag-wrap{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;}
+.jtag{font-size:.6rem;font-weight:700;padding:2px 7px;border-radius:5px;letter-spacing:.4px;cursor:default;}
+.jtag-airport{background:rgba(79,142,247,.15);color:var(--accent);}
+.jtag-station{background:rgba(167,139,250,.15);color:var(--purple);}
+.jtag-vip{background:rgba(247,192,79,.15);color:var(--amber);}
+.jtag-corp{background:rgba(45,212,160,.13);color:var(--green);}
+.jtag-long{background:rgba(247,110,110,.13);color:var(--red);}
+.jtag-custom{background:var(--surf2);color:var(--txt2);}
+/* ── FILTER BAR ── */
+.fbar{display:flex;gap:6px;margin-bottom:12px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none;}
+.fbar::-webkit-scrollbar{display:none;}
+.fpill{flex-shrink:0;padding:6px 13px;border-radius:20px;font-size:.72rem;font-weight:600;border:1px solid var(--bdr);background:var(--surf2);color:var(--txt2);cursor:pointer;transition:all .18s;white-space:nowrap;}
+.fpill.active{background:var(--acd);border-color:rgba(79,142,247,.4);color:var(--accent);}
+/* ── SPARKLINE ── */
+.spark-wrap{background:var(--surface);border:1px solid var(--bdr);border-radius:var(--r);padding:16px;margin-bottom:12px;}
+.spark-title{font-size:.72rem;font-weight:700;color:var(--txt2);margin-bottom:10px;text-transform:uppercase;letter-spacing:.6px;}
+.spark-bars{display:flex;align-items:flex-end;gap:4px;height:48px;}
+.spark-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;}
+.spark-bar{width:100%;border-radius:3px 3px 0 0;min-height:3px;transition:height .3s ease;}
+.spark-day{font-size:.58rem;color:var(--txt3);}
+/* ── DATE FILTER ── */
+.date-filter{display:flex;gap:6px;margin-bottom:10px;align-items:center;}
+.date-filter input{font-size:.82rem;padding:8px 10px;}
+.date-filter label{font-size:.65rem;color:var(--txt3);white-space:nowrap;margin-bottom:0;text-transform:none;letter-spacing:0;}
+
+
+</style>
+</head>
+<body>
+
+<!-- ══════════ TOASTS ══════════ -->
+<div id="toast" class="toast tok"><span id="ti">✓</span> <span id="tm">OK</span></div>
+
+<!-- ══════════ CONTROL MODE (Police) ══════════ -->
+<div class="ctrl-overlay" id="ctrl-mode">
+  <button class="ctrl-close" onclick="closeCtrl()">✕</button>
+  <div class="ctrl-inner" id="ctrl-content"></div>
+</div>
+
+<!-- ══════════ MODALS ══════════ -->
+
+<!-- Confirm -->
+<div class="ov" id="ov-cf">
+  <div class="modal"><div class="mhd"><h3 id="cf-t">Confirmer</h3></div><p id="cf-b" style="font-size:.82rem;color:var(--txt2);margin-bottom:16px;line-height:1.5;"></p>
+    <div class="mrow"><button class="btn btn-g" style="flex:1" onclick="closeOv('ov-cf')">Annuler</button><button class="btn btn-d" style="flex:1" id="cf-ok">Confirmer</button></div>
+  </div>
+</div>
+
+<!-- Edit Course -->
+<div class="ov" id="ov-edit">
+  <div class="modal modal-lg">
+    <div class="mhd"><h3>✏️ Modifier <span id="edit-ref" class="ref-badge"></span></h3><button class="btn btn-g btn-ic btn-sm" onclick="closeOv('ov-edit')">✕</button></div>
+    <div class="g2 fg"><div><label>Prénom</label><input type="text" id="e-fn"></div><div><label>Nom</label><input type="text" id="e-ln"></div></div>
+    <div class="g2 fg"><div><label>Téléphone</label><input type="tel" id="e-tel"></div><div><label>Email</label><input type="email" id="e-em"></div></div>
+    <div class="g2 fg"><div><label>Date</label><input type="date" id="e-dt"></div><div><label>Heure</label><input type="time" id="e-tm"></div></div>
+    <div class="fg"><label>Départ</label><input type="text" id="e-fr"></div>
+    <div class="fg"><label>Arrivée</label><input type="text" id="e-to"></div>
+    <div class="g2 fg"><div><label>Pax</label><select id="e-px"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7+</option></select></div><div><label>Véhicule</label><select id="e-vt"><option>Berline</option><option>Van / Minibus</option><option>Berline Premium</option><option>SUV</option></select></div></div>
+    <div class="g2 fg"><div><label>Règlement</label><input type="text" id="e-py"></div><div><label>Statut</label><select id="e-st"><option value="paid">✅ Payé</option><option value="pending">🕐 En attente</option></select></div></div>
+    <div class="g2 fg">
+      <div><label>Km parcourus</label><input type="number" id="e-km" placeholder="0" min="0" step="1"></div>
+      <div><label>Tag</label><select id="e-tag"><option value="">Aucun</option><option value="airport">✈️ Aéroport</option><option value="station">🚉 Gare</option><option value="vip">⭐ VIP</option><option value="corp">🏢 Entreprise</option><option value="long">🛣 Longue distance</option></select></div>
+    </div>
+    <div class="fg"><label>Notes</label><textarea id="e-nt" style="height:60px;"></textarea></div>
+    <div class="fg"><label>Prix TTC (€)</label><div class="pr-row"><span class="ppfx">TTC</span><input type="number" id="e-pr" step="0.01" min="0"><span class="psfx">€</span></div></div>
+    <div class="mrow" style="margin-top:4px;"><button class="btn btn-g" style="flex:1" onclick="closeOv('ov-edit')">Annuler</button><button class="btn btn-s" style="flex:1" onclick="saveEdit()">💾 Sauvegarder</button></div>
+  </div>
+</div>
+
+<!-- Client Modal (enriched) -->
+<div class="ov" id="ov-cl">
+  <div class="modal modal-lg">
+    <div class="mhd"><h3 id="cl-modal-t">👤 Nouveau client</h3><button class="btn btn-g btn-ic btn-sm" onclick="closeOv('ov-cl')">✕</button></div>
+    <div class="g2 fg"><div><label>Prénom</label><input type="text" id="cl-fn" placeholder="Jean"></div><div><label>Nom</label><input type="text" id="cl-ln" placeholder="Dupont"></div></div>
+    <div class="g2 fg"><div><label>Téléphone</label><input type="tel" id="cl-tel" placeholder="+33 6 00 00 00 00"></div><div><label>Email</label><input type="email" id="cl-em" placeholder="jean@exemple.fr"></div></div>
+    <div class="g2 fg"><div><label>Société / Entreprise</label><input type="text" id="cl-co" placeholder="Nom de l'entreprise"></div><div><label>Poste / Fonction</label><input type="text" id="cl-job" placeholder="Directeur, Assistant…"></div></div>
+    <div class="fg"><label>Adresse domicile</label><input type="text" id="cl-addr" placeholder="12 rue de la Paix, 75001 Paris"></div>
+    <div class="fg"><label>Adresse bureau (optionnel)</label><input type="text" id="cl-waddr" placeholder="Tour Montparnasse, Paris 15"></div>
+    <div class="fg"><label>Préférences (température, musique, trajet…)</label><textarea id="cl-pref" placeholder="Ex: 20°, Jazz, Pas de conversation, Autoroutier" style="height:64px;"></textarea></div>
+    <div class="fg"><label>Notes internes</label><textarea id="cl-notes" placeholder="Client fidèle, paie en CB, toujours ponctuel…" style="height:56px;"></textarea></div>
+    <div class="fg"><label>Fidélité</label>
+      <div style="display:flex;gap:8px;" id="cl-stars-wrap">
+        <button class="star-btn" data-v="1" onclick="setStar(1)">★</button>
+        <button class="star-btn" data-v="2" onclick="setStar(2)">★</button>
+        <button class="star-btn" data-v="3" onclick="setStar(3)">★</button>
+        <button class="star-btn" data-v="4" onclick="setStar(4)">★</button>
+        <button class="star-btn" data-v="5" onclick="setStar(5)">★</button>
+      </div>
+    </div>
+    <!-- Historique courses du client (readonly) -->
+    <div id="cl-hist-section" style="display:none;">
+      <div class="slbl" style="margin-top:12px;">Courses passées</div>
+      <div id="cl-hist-list" style="max-height:180px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;"></div>
+    </div>
+    <div class="mrow" style="margin-top:14px;">
+      <button class="btn btn-d btn-sm" id="cl-del-btn" style="display:none;" onclick="deleteClient()">🗑 Supprimer</button>
+      <button class="btn btn-g" style="flex:1" onclick="closeOv('ov-cl')">Annuler</button>
+      <button class="btn btn-p" style="flex:1" onclick="saveClient()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Client Picker (from mission form) -->
+<div class="ov" id="ov-cpick">
+  <div class="modal modal-lg">
+    <div class="mhd"><h3>👥 Choisir un client</h3><button class="btn btn-g btn-ic btn-sm" onclick="closeOv('ov-cpick')">✕</button></div>
+    <div class="sw" style="margin-bottom:12px;"><span class="ii" style="top:50%;">🔍</span><input type="text" id="cpick-srch" placeholder="Nom, téléphone, société…" oninput="renderClientPicker()"></div>
+    <div id="cpick-list" style="max-height:55vh;overflow-y:auto;display:flex;flex-direction:column;gap:7px;"></div>
+  </div>
+</div>
+
+<!-- CA Entry Modal -->
+<div class="ov" id="ov-ca">
+  <div class="modal">
+    <div class="mhd"><h3 id="ca-mt">➕ Ajouter entrée</h3><button class="btn btn-g btn-ic btn-sm" onclick="closeOv('ov-ca')">✕</button></div>
+    <div class="g2 fg"><div><label>Date</label><input type="date" id="ca-dt"></div><div><label>Heure</label><input type="time" id="ca-tm"></div></div>
+    <div class="fg"><label>Description</label><input type="text" id="ca-ds" placeholder="Course CDG, carburant…"></div>
+    <div class="fg"><label>Catégorie</label><select id="ca-ct"><option value="course">🚗 Course VTC</option><option value="autre">📦 Autre recette</option><option value="charge">💸 Charge / Dépense</option></select></div>
+    <div class="fg"><label>Montant (€)</label><div class="pr-row"><span class="ppfx" id="ca-pfx">+</span><input type="number" id="ca-am" placeholder="0.00" step="0.01" min="0"><span class="psfx">€</span></div></div>
+    <div class="mrow" style="margin-top:4px;"><button class="btn btn-g" style="flex:1" onclick="closeOv('ov-ca')">Annuler</button><button class="btn btn-p" style="flex:1" id="ca-sb" onclick="saveCA()">Enregistrer</button></div>
+  </div>
+</div>
+
+<!-- Signature Modal -->
+<div class="ov" id="ov-sig">
+  <div class="modal">
+    <div class="mhd"><h3>✍️ Signature client</h3><button class="btn btn-g btn-ic btn-sm" onclick="closeOv('ov-sig')">✕</button></div>
+    <p style="font-size:.8rem;color:var(--txt2);margin-bottom:12px;">Faites signer le client sur l'écran pour valider la course.</p>
+    <div class="sig-wrap"><canvas id="sig-canvas"></canvas><div class="sig-placeholder" id="sig-ph">Signez ici</div></div>
+    <div class="sig-acts"><button class="btn btn-g btn-sm" style="flex:1" onclick="clearSig()">↺ Effacer</button><button class="btn btn-s" style="flex:1" onclick="confirmSig()">✓ Valider & Générer</button></div>
+  </div>
+</div>
+
+<!-- SOS Modal -->
+<div class="ov" id="ov-sos">
+  <div class="modal" style="border-color:rgba(255,59,48,.3);">
+    <div class="mhd"><h3 style="color:var(--sos);">🆘 Alerte urgence</h3><button class="btn btn-g btn-ic btn-sm" onclick="closeOv('ov-sos')">✕</button></div>
+    <p style="font-size:.82rem;color:var(--txt2);margin-bottom:14px;line-height:1.5;">Votre position GPS et les détails de la course active seront envoyés à votre contact d'urgence.</p>
+    <div id="sos-info" style="font-size:.8rem;background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r2);padding:12px;margin-bottom:14px;line-height:1.7;"></div>
+    <div class="mrow"><button class="btn btn-g" style="flex:1" onclick="closeOv('ov-sos')">Annuler</button><button class="btn btn-sos" style="flex:1" onclick="sendSOS()">🆘 Envoyer l'alerte</button></div>
+  </div>
+</div>
+
+<!-- WebDAV / Cloud Sync Modal -->
+<div class="ov" id="ov-cloud">
+  <div class="modal modal-lg">
+    <div class="mhd"><h3>☁️ Synchronisation Cloud</h3><button class="btn btn-g btn-ic btn-sm" onclick="closeOv('ov-cloud')">✕</button></div>
+    <p style="font-size:.8rem;color:var(--txt2);margin-bottom:14px;line-height:1.5;">Connectez votre Nextcloud, Cozy Cloud ou tout serveur WebDAV. Vos données restent les vôtres.</p>
+    <div class="fg"><label>URL du serveur WebDAV</label><input type="url" id="dav-url" placeholder="https://nextcloud.monserveur.fr/remote.php/dav/files/user/"></div>
+    <div class="g2 fg"><div><label>Identifiant</label><input type="text" id="dav-usr" placeholder="mon_login"></div><div><label>Mot de passe</label><input type="password" id="dav-pwd" placeholder="••••••••"></div></div>
+    <div class="fg" style="margin-bottom:14px;"><label>Nom du fichier de sauvegarde</label><input type="text" id="dav-fn" placeholder="cabbydesk-backup.json"></div>
+    <div id="cloud-status" style="font-size:.78rem;padding:8px 12px;border-radius:var(--r3);background:var(--bg2);border:1px solid var(--bdr);margin-bottom:12px;display:none;"></div>
+    <div class="brow"><button class="btn btn-g" style="flex:1" onclick="testCloud()">🔌 Tester</button><button class="btn btn-p" style="flex:1" onclick="pushCloud()">⬆ Sauvegarder</button><button class="btn btn-s" style="flex:1" onclick="pullCloud()">⬇ Restaurer</button></div>
+  </div>
+</div>
+
+<!-- Relance paiement Modal -->
+<div class="ov" id="ov-relance">
+  <div class="modal">
+    <div class="mhd"><h3>💬 Relancer le paiement</h3><button class="btn btn-g btn-ic btn-sm" onclick="closeOv('ov-relance')">✕</button></div>
+    <p style="font-size:.8rem;color:var(--txt2);margin-bottom:12px;line-height:1.5;">Envoyez un rappel de paiement au client via SMS ou WhatsApp.</p>
+    <div class="fg"><label>Message (modifiable)</label><textarea id="relance-msg" style="height:110px;font-size:.86rem;"></textarea></div>
+    <div class="mrow" style="margin-top:4px;">
+      <button class="btn btn-g" style="flex:1" onclick="sendRelance('sms')">💬 SMS</button>
+      <button class="btn btn-s" style="flex:1" onclick="sendRelance('whatsapp')">📱 WhatsApp</button>
+    </div>
+  </div>
+</div>
+
+<!-- ETA WhatsApp Modal -->
+<div class="ov" id="ov-eta">
+  <div class="modal">
+    <div class="mhd"><h3>📲 Prévenir le client</h3><button class="btn btn-g btn-ic btn-sm" onclick="closeOv('ov-eta')">✕</button></div>
+    <div class="fg"><label>Temps d'arrivée estimé (minutes)</label><div class="iw"><span class="ii">⏱</span><input type="number" id="eta-min" placeholder="10" min="1" max="120" value="10"></div></div>
+    <div class="fg"><label>Message (modifiable)</label><textarea id="eta-msg" style="height:100px;font-size:.88rem;"></textarea></div>
+    <div class="mrow" style="margin-top:4px;">
+      <button class="btn btn-g" style="flex:1" onclick="sendETA('sms')">💬 SMS</button>
+      <button class="btn btn-s" style="flex:1" onclick="sendETA('whatsapp')">📱 WhatsApp</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ APP SHELL ══════════ -->
+<div class="shell">
+
+  <!-- SIDEBAR desktop -->
+  <aside class="sidebar">
+    <div class="sb-logo">
+      <div class="logo-mk"><svg width="22" height="22" viewBox="0 0 20 20" fill="none"><rect x="1" y="8" width="18" height="10" rx="2.5" fill="white" fill-opacity=".18"/><path d="M4 8V6.5C4 4.567 5.567 3 7.5 3h5C14.433 3 16 4.567 16 6.5V8" stroke="white" stroke-width="1.6" stroke-linecap="round"/><rect x="4" y="10" width="3" height="2" rx=".6" fill="white"/><rect x="8.5" y="10" width="3" height="2" rx=".6" fill="white"/><rect x="13" y="10" width="3" height="2" rx=".6" fill="white"/><circle cx="10" cy="15" r="1.2" fill="white" fill-opacity=".7"/></svg></div>
+      <div><div class="logo-txt">Cabby<em>Desk</em></div><span class="logo-ver">Elite</span></div>
+    </div>
+    <nav class="sb-nav">
+      <div class="sb-sec">Principal</div>
+      <div class="sb-item active" id="si-create"  onclick="nav('create',this,'si')"><span class="si">＋</span>Nouvelle mission</div>
+      <div class="sb-item"        id="si-history" onclick="nav('history',this,'si')"><span class="si">📂</span>Mes missions</div>
+      <div class="sb-item"        id="si-clients" onclick="nav('clients',this,'si')"><span class="si">👥</span>Clients</div>
+      <div class="sb-item"        id="si-planning" onclick="nav('planning',this,'si')"><span class="si">📅</span>Planning</div>
+      <div class="sb-item"        id="si-panneau" onclick="nav('panneau',this,'si')"><span class="si">🪧</span>Pancarte accueil</div>
+      <div class="sb-sep"></div>
+      <div class="sb-sec">Finances</div>
+      <div class="sb-item"        id="si-finance" onclick="nav('finance',this,'si')"><span class="si">📊</span>Tableau de bord</div>
+      <div class="sb-sep"></div>
+      <div class="sb-sec">Paramètres</div>
+      <div class="sb-item"        id="si-profile" onclick="nav('profile',this,'si')"><span class="si">⚙️</span>Profil & Légal</div>
+    </nav>
+    <div style="margin-bottom:10px;">
+      <button class="btn btn-g" style="width:100%;font-size:.8rem;padding:9px;" onclick="toggleTheme()"><span id="sb-ti">☀️</span> <span id="sb-tl">Mode jour</span></button>
+    </div>
+    <div class="sb-foot"><div class="sf-name" id="sf-nm">Mon entreprise</div><div class="sf-sub" id="sf-sb">Complétez votre profil</div></div>
+  </aside>
+
+  <div class="main-col">
+
+    <!-- Mobile header -->
+    <header class="mob-hdr">
+      <div class="mh-l">
+        <div class="logo-mk" style="width:30px;height:30px;border-radius:8px;"><svg width="18" height="18" viewBox="0 0 20 20" fill="none"><rect x="1" y="8" width="18" height="10" rx="2.5" fill="white" fill-opacity=".18"/><path d="M4 8V6.5C4 4.567 5.567 3 7.5 3h5C14.433 3 16 4.567 16 6.5V8" stroke="white" stroke-width="1.6" stroke-linecap="round"/><rect x="4" y="10" width="3" height="2" rx=".6" fill="white"/><rect x="8.5" y="10" width="3" height="2" rx=".6" fill="white"/><rect x="13" y="10" width="3" height="2" rx=".6" fill="white"/><circle cx="10" cy="15" r="1.2" fill="white" fill-opacity=".7"/></svg></div>
+        <div class="logo-txt" style="font-size:.95rem;">Cabby<em style="color:var(--accent);font-style:normal;">Desk</em> <span class="logo-ver">Elite</span></div>
+      </div>
+      <div class="mh-r">
+        <div class="dchip" id="dchip">--</div>
+        <button class="hdrbtn" id="mob-tb" onclick="toggleTheme()">☀️</button>
+        <button class="hdrbtn sos-btn" onclick="openSOS()">SOS</button>
+      </div>
+    </header>
+
+    <div class="dbar" id="dbar"></div>
+
+    <!-- ════ VIEW : NOUVELLE MISSION ════ -->
+    <main id="view-create" class="view active">
+      <div class="vi">
+
+        <!-- Magic Import -->
+        <div class="card ac">
+          <div class="magiclbl"><div class="pdot"></div>Import automatique 2.0 <span class="mhint">WhatsApp · SMS · Appli · Email</span></div>
+          <div class="fg" style="margin-bottom:10px;"><textarea id="magic-input" style="height:78px;" placeholder="Collez votre message de réservation — le moteur détecte : nom, téléphone, adresses, gares/aéroports, date, heure, prix, forfaits…"></textarea></div>
+          <button class="btn btn-p" onclick="parseMagic()">✦ Analyser le message</button>
+        </div>
+
+        <div class="div"><span>ou saisir manuellement</span></div>
+
+        <!-- Edit banner -->
+        <div class="edit-banner" id="edit-banner">
+          <div class="edit-banner-inner">✏️ Mode édition — <span id="edit-ref2" class="ref-badge"></span>
+            <button class="btn btn-g btn-sm" style="margin-left:auto;" onclick="cancelEdit()">Annuler</button>
+          </div>
+        </div>
+
+        <!-- Client Info -->
+        <p class="slbl">Client</p>
+        <div class="card">
+          <!-- Quick actions row -->
+          <div style="display:flex;gap:7px;margin-bottom:12px;">
+            <button class="btn btn-p btn-sm" style="flex:1" onclick="openClientPicker()">📂 Choisir dans le répertoire</button>
+            <button class="btn btn-g btn-sm" style="flex:1" onclick="pickFromContacts()" id="btn-contacts">📱 Contacts tél.</button>
+          </div>
+          <div class="g2 fg"><div><label>Prénom</label><div class="iw"><span class="ii">👤</span><input type="text" id="c-fn" placeholder="Jean" oninput="onClientFieldChange()"></div></div><div><label>Nom</label><input type="text" id="c-ln" placeholder="Dupont" oninput="onClientFieldChange()"></div></div>
+          <div class="fg"><label>Téléphone</label><div class="iw"><span class="ii">📱</span><input type="tel" id="c-tel" placeholder="+33 6 00 00 00 00" oninput="onClientTelChange()"></div></div>
+          <div class="fg"><label>Email (optionnel)</label><div class="iw"><span class="ii">✉️</span><input type="email" id="c-em" placeholder="client@exemple.fr"></div></div>
+          <!-- Client recognition banner -->
+          <div id="cl-recog-banner" style="display:none;background:var(--acd);border:1px solid rgba(79,142,247,.3);border-radius:var(--r3);padding:9px 12px;font-size:.8rem;color:var(--accent);display:none;align-items:center;gap:8px;">
+            <span id="cl-recog-txt"></span>
+            <button class="btn btn-g btn-sm" style="margin-left:auto;font-size:.72rem;padding:4px 9px;" onclick="useClientPrefs()">Appliquer préfs ›</button>
+          </div>
+          <!-- Save to clients toggle -->
+          <div style="display:flex;align-items:center;gap:10px;margin-top:10px;padding-top:10px;border-top:1px solid var(--bdr);">
+            <label style="text-transform:none;letter-spacing:0;font-size:.8rem;color:var(--txt2);margin:0;flex:1;cursor:pointer;" for="save-client-toggle">Enregistrer dans le répertoire clients</label>
+            <div class="toggle-wrap"><input type="checkbox" id="save-client-toggle" checked><div class="toggle-track" onclick="document.getElementById('save-client-toggle').click()"><div class="toggle-thumb"></div></div></div>
+          </div>
+        </div>
+
+        <!-- Course Details -->
+        <p class="slbl">Détails de la mission</p>
+        <div class="card">
+          <div class="g2 fg"><div><label>Date</label><input type="date" id="c-dt"></div><div><label>Heure</label><input type="time" id="c-tm"></div></div>
+          <div class="fg"><label>Trajet</label>
+            <div class="rblk">
+              <div class="rrow"><div class="rdot rda"></div><input type="text" id="c-fr" placeholder="Adresse de départ"></div>
+              <div class="rrow"><div class="rdot rdb"></div><input type="text" id="c-to" placeholder="Adresse d'arrivée"></div>
+            </div>
+          </div>
+          <div class="g2 fg">
+            <div><label>Passagers</label><div class="iw"><span class="ii">🧍</span><select id="c-px"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7+</option></select></div></div>
+            <div><label>Véhicule</label><div class="iw"><span class="ii">🚗</span><select id="c-vt"><option>Berline</option><option>Van / Minibus</option><option>Berline Premium</option><option>SUV</option></select></div></div>
+          </div>
+          <div class="fg"><label>Mode de règlement (après la course)</label><div class="iw"><span class="ii">💳</span><input type="text" id="c-py" placeholder="Espèces, CB, virement… (optionnel)"></div></div>
+          <div class="fg"><label>Statut paiement</label>
+            <div style="display:flex;gap:8px;">
+              <button class="status-pill sp-pend" id="st-pend" onclick="setStatus('pending')"><span class="sp-dot"></span>En attente</button>
+              <button class="status-pill" id="st-paid" onclick="setStatus('paid')" style="background:var(--surf2);color:var(--txt2);border-color:var(--bdr);"><span class="sp-dot" style="background:var(--txt2)"></span>Payé</button>
+            </div>
+          </div>
+          <div class="fg"><label>Notes internes</label><textarea id="c-nt" placeholder="Bagages, instructions…" style="height:62px;"></textarea></div>
+          <div class="g2 fg">
+            <div><label>Kilomètres (optionnel)</label><div class="iw"><span class="ii">📍</span><input type="number" id="c-km" placeholder="0" min="0" step="1"></div></div>
+            <div><label>Tags</label>
+              <select id="c-tag" style="font-size:.85rem;">
+                <option value="">Aucun tag</option>
+                <option value="airport">✈️ Aéroport</option>
+                <option value="station">🚉 Gare</option>
+                <option value="vip">⭐ VIP</option>
+                <option value="corp">🏢 Entreprise</option>
+                <option value="long">🛣 Longue distance</option>
+              </select>
+            </div>
+          </div>
+          <div class="fg" style="margin-bottom:0;"><label>Prix TTC (€)</label>
+            <div class="pr-row"><span class="ppfx">TTC</span><input type="number" id="c-pr" placeholder="0.00" step="0.01" min="0" oninput="calcNet()"><span class="psfx">€</span></div>
+          </div>
+          <!-- NET CALCULATOR -->
+          <div class="net-box" id="net-box" style="display:none;">
+            <div class="net-row"><span class="nl">HT (TVA <span id="nc-tva-r">10</span>%)</span><span class="nv" id="nc-ht">—</span></div>
+            <div class="net-row"><span class="nl">TVA</span><span class="nv" id="nc-tva">—</span></div>
+            <div class="net-row" style="margin-top:4px;"><span class="nl" style="color:var(--txt3);font-size:.75rem;">URSSAF (<span id="nc-ur-r">22</span>%)</span><span class="nv" id="nc-ur" style="color:var(--red);font-size:.8rem;">—</span></div>
+            <div class="net-row"><span class="nl" style="color:var(--txt3);font-size:.75rem;">Carburant/usure est.</span><span class="nv" id="nc-fuel" style="color:var(--red);font-size:.8rem;">—</span></div>
+            <div class="net-row net-total"><span class="nl">Net estimé</span><span class="nv" id="nc-net">—</span></div>
+          </div>
+        </div>
+
+        <!-- Signature section -->
+        <p class="slbl">Signature (optionnel)</p>
+        <div class="card">
+          <div class="sig-wrap"><canvas id="sig-inline"></canvas><div class="sig-placeholder" id="sig-iph">Signature client (touchez pour signer)</div></div>
+          <div class="sig-acts"><button class="btn btn-g btn-sm" style="flex:1" onclick="clearInlineSig()">↺ Effacer</button><div id="sig-status" style="font-size:.75rem;color:var(--green);display:none;align-items:center;gap:4px;">✓ Signature enregistrée</div></div>
+        </div>
+
+        <!-- Actions -->
+        <div class="brow" style="margin-bottom:6px;">
+          <button class="btn btn-g btn-ic" onclick="resetForm()" title="Réinitialiser" style="flex-shrink:0;">↺</button>
+          <button class="btn btn-s" style="flex:1" id="save-btn" onclick="saveAndGen()">Enregistrer & générer le bon</button>
+        </div>
+        <button class="btn btn-g" onclick="openETA()" style="font-size:.82rem;padding:10px;">📲 Prévenir le client (ETA)</button>
+
+      </div>
+    </main>
+
+    <!-- ════ VIEW : HISTORIQUE ════ -->
+    <main id="view-history" class="view">
+      <div class="vi">
+        <div class="srow" id="srow"></div>
+
+        <!-- Header -->
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+          <div style="font-size:.96rem;font-weight:700;">Mes missions</div>
+          <div style="display:flex;gap:6px;">
+            <button class="btn btn-g btn-sm" onclick="exportJSON()">⬇ JSON</button>
+            <button class="btn btn-d btn-sm" onclick="confClear()">Effacer</button>
+          </div>
+        </div>
+
+        <!-- Search -->
+        <div class="sw"><span class="ii" style="top:50%;">🔍</span><input type="text" id="srch" placeholder="Nom, téléphone, ville, tag, référence…" oninput="renderHist()"></div>
+
+        <!-- Status filter pills -->
+        <div class="fbar" id="fbar">
+          <div class="fpill active" data-f="active"   onclick="setFilter('active',this)">📋 Actives</div>
+          <div class="fpill"        data-f="paid"     onclick="setFilter('paid',this)">✅ Payées</div>
+          <div class="fpill"        data-f="pending"  onclick="setFilter('pending',this)">🕐 En attente</div>
+          <div class="fpill"        data-f="archived" onclick="setFilter('archived',this)">📦 Archivées</div>
+          <div class="fpill"        data-f="all"      onclick="setFilter('all',this)">🔁 Toutes</div>
+        </div>
+
+        <!-- Tag filter -->
+        <div class="fbar" id="tag-fbar">
+          <div class="fpill active" data-t="" onclick="setTagFilter('',this)">Tous tags</div>
+          <div class="fpill" data-t="airport" onclick="setTagFilter('airport',this)">✈️ Aéroport</div>
+          <div class="fpill" data-t="station" onclick="setTagFilter('station',this)">🚉 Gare</div>
+          <div class="fpill" data-t="vip"     onclick="setTagFilter('vip',this)">⭐ VIP</div>
+          <div class="fpill" data-t="corp"    onclick="setTagFilter('corp',this)">🏢 Entreprise</div>
+          <div class="fpill" data-t="long"    onclick="setTagFilter('long',this)">🛣 Longue dist.</div>
+        </div>
+
+        <!-- Date range filter -->
+        <div class="date-filter">
+          <label>Du</label>
+          <input type="date" id="f-from" onchange="renderHist()" style="flex:1;">
+          <label>au</label>
+          <input type="date" id="f-to" onchange="renderHist()" style="flex:1;">
+          <button class="btn btn-g btn-sm" onclick="clearDateFilter()" style="flex-shrink:0;padding:8px 10px;">✕</button>
+        </div>
+
+        <div class="hl" id="hl"></div>
+      </div>
+    </main>
+
+    <!-- ════ VIEW : CLIENTS ════ -->
+    <main id="view-clients" class="view">
+      <div class="vi">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+          <div><div style="font-size:.96rem;font-weight:700;">Répertoire clients</div><div style="font-size:.74rem;color:var(--txt3);margin-top:2px;">Mémorisé en IndexedDB — privé et local</div></div>
+          <button class="btn btn-p btn-sm" onclick="openClientModal()">+ Nouveau</button>
+        </div>
+        <div class="sw"><span class="ii" style="top:50%;">🔍</span><input type="text" id="cl-srch" placeholder="Nom, téléphone…" oninput="renderClients()"></div>
+        <div class="cl-grid" id="cl-grid"></div>
+      </div>
+    </main>
+
+    <!-- ════ VIEW : FINANCES ════ -->
+    <main id="view-finance" class="view">
+      <div class="vi">
+
+        <!-- Sparkline 7 jours -->
+        <div class="spark-wrap" id="spark-wrap">
+          <div class="spark-title">CA des 7 derniers jours</div>
+          <div class="spark-bars" id="spark-bars"></div>
+        </div>
+
+        <!-- KPI Row -->
+        <div id="kpi-row" style="display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-bottom:14px;"></div>
+
+        <!-- CA Module -->
+        <div class="ca-hdr">
+          <div class="ca-nav">
+            <button class="ca-nb" onclick="caNav(-1)">‹</button>
+            <div class="ca-dl" id="ca-dl">Aujourd'hui</div>
+            <button class="ca-nb" onclick="caNav(1)">›</button>
+          </div>
+          <button class="btn btn-p btn-sm" onclick="openCAModal()">+ Ajouter</button>
+        </div>
+        <div class="ca-sum" id="ca-sum"></div>
+        <div class="exp-bar">
+          <button class="btn btn-g btn-sm" style="flex:1" onclick="expCSV()">⬇ CSV</button>
+          <button class="btn btn-g btn-sm" style="flex:1" onclick="expPDF()">📄 PDF</button>
+          <button class="btn btn-g btn-sm" style="flex:1" onclick="openCloud()">☁️ Cloud</button>
+        </div>
+        <div id="ca-list"></div>
+
+      </div>
+    </main>
+
+    <!-- ════ VIEW : PROFIL ════ -->
+    <main id="view-profile" class="view">
+      <div class="vi">
+        <div class="pbanner"><div class="avatar">🧑‍✈️</div><div><div class="bn-nm" id="bn-nm">Mon entreprise</div><div class="bn-sb" id="bn-sb">Complétez votre profil</div></div></div>
+
+        <p class="slbl">Identité chauffeur</p>
+        <div class="fb">
+          <div class="fr"><span class="fi2">👤</span><div class="finn"><label>Prénom & Nom</label><input type="text" id="p-dn" placeholder="Jean Dupont"></div></div>
+          <div class="fr"><span class="fi2">📱</span><div class="finn"><label>Téléphone pro</label><input type="tel" id="p-tel" placeholder="+33 6 00 00 00 00"></div></div>
+          <div class="fr"><span class="fi2">✉️</span><div class="finn"><label>Email pro</label><input type="email" id="p-em" placeholder="contact@monvtc.fr"></div></div>
+          <div class="fr"><span class="fi2">🆘</span><div class="finn"><label>Contact urgence (SOS)</label><input type="tel" id="p-sos" placeholder="+33 6 xx xx xx xx"></div></div>
+        </div>
+
+        <p class="slbl">Informations légales</p>
+        <div class="fb">
+          <div class="fr"><span class="fi2">🏢</span><div class="finn"><label>Raison sociale</label><input type="text" id="p-nm" placeholder="VTC Excellence Paris"></div></div>
+          <div class="fr"><span class="fi2">📋</span><div class="finn"><label>SIRET</label><input type="text" id="p-si" maxlength="17" placeholder="000 000 000 00000"></div></div>
+          <div class="fr"><span class="fi2">🪪</span><div class="finn"><label>Licence VTC</label><input type="text" id="p-vt" placeholder="EVTC0123456"></div></div>
+          <div class="fr"><span class="fi2">📍</span><div class="finn"><label>Adresse facturation</label><input type="text" id="p-ad" placeholder="12 rue de la Paix, 75001 Paris"></div></div>
+        </div>
+
+        <p class="slbl">Véhicule</p>
+        <div class="fb">
+          <div class="fr"><span class="fi2">🚗</span><div class="finn"><label>Marque & Modèle</label><input type="text" id="p-vh" placeholder="Mercedes Classe E"></div></div>
+          <div class="fr"><span class="fi2">🔢</span><div class="finn"><label>Immatriculation</label><input type="text" id="p-pl" placeholder="AB-123-CD"></div></div>
+        </div>
+
+        <p class="slbl">Fiscal & Paiement</p>
+        <div class="fb">
+          <div class="fr"><span class="fi2">🏦</span><div class="finn"><label>IBAN</label><input type="text" id="p-ib" placeholder="FR76 0000 0000 0000 0000 0000 000"></div></div>
+          <div class="fr"><span class="fi2">🏷️</span><div class="finn"><label>Régime TVA</label><select id="p-tv"><option value="10">TVA 10% (standard VTC)</option><option value="0">Sans TVA (AE)</option><option value="20">TVA 20%</option></select></div></div>
+          <div class="fr"><span class="fi2">📊</span><div class="finn"><label>Taux URSSAF (%)</label><input type="number" id="p-ur" placeholder="22" min="0" max="50"></div></div>
+          <div class="fr"><span class="fi2">⛽</span><div class="finn"><label>Coût carburant/km estimé (€)</label><input type="number" id="p-km" placeholder="0.18" step="0.01" min="0"></div></div>
+          <div class="fr"><span class="fi2">📑</span><div class="finn"><label>Prochain n° facture</label><input type="number" id="p-ni" placeholder="1" min="1"></div></div>
+        </div>
+
+        <p class="slbl">Cloud & Sauvegarde</p>
+        <div class="fb" style="margin-bottom:16px;">
+          <div class="fr"><span class="fi2">☁️</span><div class="finn"><label>Serveur WebDAV (Nextcloud…)</label><input type="url" id="p-wu" placeholder="https://nextcloud.monserveur.fr/..."></div></div>
+          <div class="fr"><span class="fi2">👤</span><div class="finn"><label>Login WebDAV</label><input type="text" id="p-wl" placeholder="mon_login"></div></div>
+          <div class="fr"><span class="fi2">🔑</span><div class="finn"><label>Mot de passe WebDAV</label><input type="password" id="p-wp" placeholder="••••••••"></div></div>
+        </div>
+
+        <div class="brow" style="margin-bottom:8px;">
+          <button class="btn btn-p" style="flex:1" onclick="saveProfile()">💾 Sauvegarder</button>
+          <button class="btn btn-g btn-ic" onclick="openCloud()" title="Cloud Sync">☁️</button>
+        </div>
+        <div class="brow" style="margin-bottom:8px;">
+          <button class="btn btn-g" style="flex:1" onclick="exportJSON()">⬇ Export JSON</button>
+          <button class="btn btn-g" style="flex:1" onclick="importJSON()">⬆ Import JSON</button>
+        </div>
+        <input type="file" id="import-file" accept=".json" style="display:none" onchange="handleImport(event)">
+        <button class="btn btn-d" onclick="confWipe()">⚠️ Réinitialiser toutes les données</button>
+      </div>
+    </main>
+
+    <!-- ════ VIEW : PLANNING ════ -->
+    <main id="view-planning" class="view">
+      <div class="vi">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:8px;">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <button class="ca-nb" onclick="planNav(-7)">‹‹</button>
+            <button class="ca-nb" onclick="planNav(-1)">‹</button>
+            <button class="btn btn-g btn-sm" onclick="planToday()" style="padding:6px 12px;font-size:.76rem;">Auj.</button>
+            <button class="ca-nb" onclick="planNav(1)">›</button>
+            <button class="ca-nb" onclick="planNav(7)">››</button>
+          </div>
+          <div id="plan-date-lbl" style="font-size:.84rem;font-weight:600;color:var(--txt2);"></div>
+        </div>
+        <div class="fbar" style="margin-bottom:12px;">
+          <div class="fpill active" data-pv="day"  onclick="setPlanView('day',this)">📅 Jour</div>
+          <div class="fpill"        data-pv="week" onclick="setPlanView('week',this)">📆 Semaine</div>
+          <div class="fpill"        data-pv="all"  onclick="setPlanView('all',this)">🗂 Toutes</div>
+        </div>
+        <div style="display:flex;gap:6px;margin-bottom:12px;align-items:center;">
+          <span style="font-size:.7rem;color:var(--txt3);">Tri :</span>
+          <div class="fpill active" id="sort-asc"  onclick="setPlanSort('asc',this)" style="padding:5px 10px;">⬆ Croissant</div>
+          <div class="fpill"        id="sort-desc" onclick="setPlanSort('desc',this)" style="padding:5px 10px;">⬇ Décroissant</div>
+        </div>
+        <div id="plan-summary" style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;"></div>
+        <div id="plan-list"></div>
+      </div>
+    </main>
+
+    <!-- ════ VIEW : PANCARTE ACCUEIL ════ -->
+    <main id="view-panneau" class="view">
+      <div class="vi">
+        <div class="card">
+          <p class="slbl">Générateur de pancarte</p>
+          <div class="g2 fg">
+            <div><label>Préfixe</label>
+              <select id="pan-prefix" onchange="renderPanneau()">
+                <option value="">— Aucun</option><option value="M.">M.</option><option value="Mme">Mme</option>
+                <option value="Dr">Dr</option><option value="Pr">Pr</option><option value="Famille">Famille</option><option value="Groupe">Groupe</option>
+              </select>
+            </div>
+            <div><label>Format</label>
+              <select id="pan-format" onchange="renderPanneau()">
+                <option value="landscape">Paysage (A4)</option><option value="portrait">Portrait (A4)</option><option value="square">Carré</option>
+              </select>
+            </div>
+          </div>
+          <div class="fg">
+            <label>Nom du client</label>
+            <input type="text" id="pan-name" placeholder="DUPONT Jean" oninput="renderPanneau()" style="font-size:1.05rem;font-weight:700;">
+          </div>
+          <div class="fg">
+            <label>Sous-titre (vol, heure, société…)</label>
+            <input type="text" id="pan-sub" placeholder="Vol AF123 · 14h30 · CDG T2" oninput="renderPanneau()">
+          </div>
+          <div class="g2 fg">
+            <div><label>Police</label>
+              <select id="pan-font" onchange="renderPanneau()">
+                <option value="Georgia,serif">Georgia — Classique</option>
+                <option value="'Times New Roman',serif">Times — Formel</option>
+                <option value="Arial,sans-serif">Arial — Moderne</option>
+                <option value="'Courier New',monospace">Courier — Tech</option>
+                <option value="Impact,sans-serif">Impact — Bold</option>
+                <option value="Garamond,serif">Garamond — Élégant</option>
+              </select>
+            </div>
+            <div><label>Taille texte</label>
+              <select id="pan-size" onchange="renderPanneau()">
+                <option value="auto">Auto</option><option value="80">Très grand</option>
+                <option value="60">Grand</option><option value="44">Moyen</option><option value="32">Petit</option>
+              </select>
+            </div>
+          </div>
+          <div class="fg">
+            <label>Couleur de fond</label>
+            <div class="fbar" id="pan-colors">
+              <div class="color-pill active" data-bg="#000000" data-txt="#FFFFFF" onclick="setPanColor(this)">⬛ Noir</div>
+              <div class="color-pill"        data-bg="#FFFFFF" data-txt="#111111" onclick="setPanColor(this)">⬜ Blanc</div>
+              <div class="color-pill"        data-bg="#0D1B2A" data-txt="#FFFFFF" onclick="setPanColor(this)">🌑 Nuit</div>
+              <div class="color-pill"        data-bg="#002B7F" data-txt="#FFFFFF" onclick="setPanColor(this)">🔵 Bleu</div>
+              <div class="color-pill"        data-bg="#8B0000" data-txt="#FFFFFF" onclick="setPanColor(this)">🔴 Rouge</div>
+              <div class="color-pill"        data-bg="#1B3A1B" data-txt="#FFFFFF" onclick="setPanColor(this)">🟢 Vert</div>
+              <div class="color-pill"        data-bg="#2C1810" data-txt="#F5DEB3" onclick="setPanColor(this)">🟤 Bois</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:4px;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <label style="text-transform:none;letter-spacing:0;font-size:.8rem;margin:0;" for="pan-co-toggle">Nom entreprise</label>
+              <div class="toggle-wrap"><input type="checkbox" id="pan-co-toggle" checked onchange="renderPanneau()"><div class="toggle-track" onclick="document.getElementById('pan-co-toggle').click()"><div class="toggle-thumb"></div></div></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <label style="text-transform:none;letter-spacing:0;font-size:.8rem;margin:0;" for="pan-border-toggle">Bordure déco</label>
+              <div class="toggle-wrap"><input type="checkbox" id="pan-border-toggle" checked onchange="renderPanneau()"><div class="toggle-track" onclick="document.getElementById('pan-border-toggle').click()"><div class="toggle-thumb"></div></div></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <label style="text-transform:none;letter-spacing:0;font-size:.8rem;margin:0;" for="pan-date-toggle">Afficher date/heure</label>
+              <div class="toggle-wrap"><input type="checkbox" id="pan-date-toggle" onchange="renderPanneau()"><div class="toggle-track" onclick="document.getElementById('pan-date-toggle').click()"><div class="toggle-thumb"></div></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Preview -->
+        <div style="background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden;margin-bottom:12px;">
+          <canvas id="pan-canvas" style="width:100%;display:block;"></canvas>
+        </div>
+
+        <!-- Download actions -->
+        <div class="brow" style="margin-bottom:8px;">
+          <button class="btn btn-p" style="flex:1" onclick="downloadPanneau('png')">⬇ PNG HD</button>
+          <button class="btn btn-g" style="flex:1" onclick="downloadPanneau('jpg')">⬇ JPEG</button>
+          <button class="btn btn-g btn-ic" onclick="sharePanneau()" title="Partager">↗</button>
+        </div>
+        <button class="btn btn-g" onclick="savePanneauToHistory()" style="font-size:.82rem;padding:10px;margin-bottom:16px;">📌 Sauvegarder dans l'historique</button>
+
+        <!-- Saved history -->
+        <p class="slbl">Pancartes sauvegardées</p>
+        <div id="pan-history" style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;"></div>
+      </div>
+    </main>
+
+  </div><!-- /main-col -->
+</div><!-- /shell -->
+
+<!-- Tab Bar Mobile -->
+<nav class="tab-bar">
+  <div class="ti active" id="tab-create"   onclick="nav('create',this,'tab')"><div class="tiw">＋</div><span>Mission</span></div>
+  <div class="ti"        id="tab-planning" onclick="nav('planning',this,'tab')"><div class="tiw">📅</div><span>Planning</span></div>
+  <div class="ti"        id="tab-clients"  onclick="nav('clients',this,'tab')"><div class="tiw">👥</div><span>Clients</span></div>
+  <div class="ti"        id="tab-panneau"  onclick="nav('panneau',this,'tab')"><div class="tiw">🪧</div><span>Pancarte</span></div>
+  <div class="ti"        id="tab-finance"  onclick="nav('finance',this,'tab')"><div class="tiw">📊</div><span>Finances</span></div>
+</nav>
+
+<!-- ══════════════════════════════════════════════
+     JAVASCRIPT — CabbyDesk Elite Engine
+══════════════════════════════════════════════ -->
+<script>
+'use strict';
+/* ──────────────────────────────────────────────
+   UTILS
+────────────────────────────────────────────── */
+const $=id=>document.getElementById(id);
+const gv=id=>($( id)||{}).value||'';
+const sv=(id,v)=>{const e=$(id);if(e)e.value=v||'';};
+const pad=n=>String(n).padStart(2,'0');
+const fmtD=iso=>iso?iso.split('-').reverse().join('/'):'--';
+const fa=n=>parseFloat(n||0).toFixed(2);
+const NOW=new Date();
+
+/* vibration */
+const vib=(p=[10])=>navigator.vibrate&&navigator.vibrate(p);
+
+/* ──────────────────────────────────────────────
+   INDEXEDDB ENGINE
+────────────────────────────────────────────── */
+let DB=null;
+const DB_NAME='CabbyDeskElite', DB_VER=1;
+const STORES={jobs:'jobs',clients:'clients',ca:'ca'};
+
+function openDB(){
+  return new Promise((res,rej)=>{
+    const r=indexedDB.open(DB_NAME,DB_VER);
+    r.onupgradeneeded=e=>{
+      const db=e.target.result;
+      if(!db.objectStoreNames.contains('jobs'))    db.createObjectStore('jobs',{keyPath:'id'});
+      if(!db.objectStoreNames.contains('clients')) db.createObjectStore('clients',{keyPath:'id'});
+      if(!db.objectStoreNames.contains('ca'))      db.createObjectStore('ca',{keyPath:'id'});
+    };
+    r.onsuccess=e=>{DB=e.target.result;res(DB);};
+    r.onerror=e=>rej(e);
+  });
+}
+
+function dbGetAll(store){
+  return new Promise((res,rej)=>{
+    const tx=DB.transaction(store,'readonly');
+    const req=tx.objectStore(store).getAll();
+    req.onsuccess=()=>res(req.result||[]);
+    req.onerror=()=>rej(req.error);
+  });
+}
+function dbPut(store,obj){
+  return new Promise((res,rej)=>{
+    const tx=DB.transaction(store,'readwrite');
+    const req=tx.objectStore(store).put(obj);
+    req.onsuccess=()=>res(req.result);
+    req.onerror=()=>rej(req.error);
+  });
+}
+function dbDel(store,id){
+  return new Promise((res,rej)=>{
+    const tx=DB.transaction(store,'readwrite');
+    const req=tx.objectStore(store).delete(id);
+    req.onsuccess=()=>res();
+    req.onerror=()=>rej(req.error);
+  });
+}
+function dbClear(store){
+  return new Promise((res,rej)=>{
+    const tx=DB.transaction(store,'readwrite');
+    const req=tx.objectStore(store).clear();
+    req.onsuccess=()=>res();
+    req.onerror=()=>rej(req.error);
+  });
+}
+
+/* LocalStorage fallback for profile & counters */
+const ls=(k,d)=>localStorage.setItem(k,JSON.stringify(d));
+const gl=k=>{try{return JSON.parse(localStorage.getItem(k));}catch{return null;}};
+
+/* ──────────────────────────────────────────────
+   COUNTERS
+────────────────────────────────────────────── */
+function nextJobNum(){let n=parseInt(gl('cd_jc')||'0')+1;ls('cd_jc',n);return n;}
+function nextInvNum(){const p=gl('cdp')||{};let n=parseInt(p.ni||'1');p.ni=n+1;ls('cdp',p);return n;}
+
+/* ──────────────────────────────────────────────
+   THEME
+────────────────────────────────────────────── */
+let dark=gl('cd_theme')!=='light';
+function applyTheme(){
+  document.documentElement.setAttribute('data-theme',dark?'dark':'light');
+  const ico=dark?'☀️':'🌙', lbl=dark?'Mode jour':'Mode nuit';
+  const mbt=$('mob-tb'); if(mbt) mbt.textContent=ico;
+  const sti=$('sb-ti'); if(sti) sti.textContent=ico;
+  const stl=$('sb-tl'); if(stl) stl.textContent=lbl;
+  const tc=$('tc-meta'); if(tc) tc.setAttribute('content',dark?'#0A0B0F':'#F0F2F8');
+  ls('cd_theme',dark?'dark':'light');
+}
+function toggleTheme(){dark=!dark;applyTheme();vib([8,4,8]);}
+applyTheme();
+
+/* ──────────────────────────────────────────────
+   INIT
+────────────────────────────────────────────── */
+$('dchip').textContent=NOW.toLocaleDateString('fr-FR',{weekday:'short',day:'2-digit',month:'short'});
+const DTITLES={
+  create:   {t:'Nouvelle mission',     s:'Saisie, bon de commande et signature'},
+  history:  {t:'Mes missions',         s:'Historique, édition et facturation'},
+  planning: {t:'Planning',             s:'Toutes les courses triées par date et heure'},
+  clients:  {t:'Répertoire',           s:'Clients fréquents et préférences'},
+  panneau:  {t:'Pancarte accueil',     s:'Générer et télécharger une pancarte client'},
+  finance:  {t:'Tableau de bord',      s:'CA journalier, KPI et exports'},
+  profile:  {t:'Profil & Légal',       s:'Paramètres, cloud et sauvegarde'}
+};
+function setDbar(id){
+  const d=DTITLES[id];
+  $('dbar').innerHTML=`<div><div class="page-title">${d.t}</div><div class="page-sub">${d.s}</div></div>
+    <div class="dbar-r"><div class="dchip">${NOW.toLocaleDateString('fr-FR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'})}</div>
+    <button class="hdrbtn sos-btn" onclick="openSOS()">SOS</button></div>`;
+}
+setDbar('create');
+
+/* ──────────────────────────────────────────────
+   TOAST + HAPTIC
+────────────────────────────────────────────── */
+function toast(msg,type='ok'){
+  const t=$('toast');
+  t.className='toast '+(type==='ok'?'tok':type==='err'?'terr':'tinfo');
+  $('ti').textContent=type==='ok'?'✓':type==='err'?'✕':'ℹ';
+  $('tm').textContent=msg;
+  t.classList.add('show');
+  clearTimeout(t._to);
+  t._to=setTimeout(()=>t.classList.remove('show'),3500);
+  if(type==='ok') vib([10]);
+  if(type==='err') vib([30,10,30]);
+}
+
+/* ──────────────────────────────────────────────
+   MODALS / OVERLAYS
+────────────────────────────────────────────── */
+function closeOv(id){$(id).classList.remove('open');}
+function openOv(id){$(id).classList.add('open');}
+function showConfirm(title,body,cb){
+  $('cf-t').textContent=title; $('cf-b').textContent=body;
+  openOv('ov-cf');
+  $('cf-ok').onclick=()=>{closeOv('ov-cf');cb();};
+}
+
+/* ──────────────────────────────────────────────
+   NAVIGATION
+────────────────────────────────────────────── */
+function nav(id,el,pfx){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  $('view-'+id).classList.add('active');
+  document.querySelectorAll('.ti').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.sb-item').forEach(s=>s.classList.remove('active'));
+  if(pfx==='tab'){el.classList.add('active');const si=$('si-'+id);if(si)si.classList.add('active');}
+  else{el.classList.add('active');const ti=$('tab-'+id);if(ti)ti.classList.add('active');}
+  setDbar(id);
+  if(id==='history'){renderHist();renderStats();}
+  if(id==='planning'){renderPlanning();}
+  if(id==='clients') renderClients();
+  if(id==='finance') {renderCA();renderKPI();renderSparkline();}
+  if(id==='panneau') {renderPanneau();renderPanHistory();}
+  if(id==='profile') updBanner();
+  window.scrollTo({top:0,behavior:'smooth'});
+  vib([6]);
+}
+
+/* ──────────────────────────────────────────────
+   PROFILE
+────────────────────────────────────────────── */
+const PP_IDS=['dn','tel','em','nm','si','vt','ad','vh','pl','ib','ur','km','ni','wu','wl','wp','sos'];
+function saveProfile(){
+  const d={tv:gv('p-tv'),ni:gv('p-ni')||'1'};
+  PP_IDS.forEach(k=>d[k]=gv('p-'+k));
+  ls('cdp',d); updBanner(); toast('Profil enregistré !'); vib([8,4,8,4,8]);
+}
+function loadProfile(){
+  const d=gl('cdp')||{};
+  PP_IDS.forEach(k=>sv('p-'+k,d[k]));
+  if(d.tv) $('p-tv').value=d.tv;
+  sv('p-ni',d.ni||'1');
+  updBanner(); calcNet();
+}
+function updBanner(){
+  const d=gl('cdp')||{};
+  const n=d.nm||'Mon entreprise';
+  const s=d.vt?`Licence ${d.vt}`:(d.tel||'Complétez votre profil');
+  ['bn-nm','sf-nm'].forEach(id=>{const e=$(id);if(e)e.textContent=n;});
+  ['bn-sb','sf-sb'].forEach(id=>{const e=$(id);if(e)e.textContent=s;});
+}
+function confWipe(){showConfirm('⚠️ Réinitialiser','TOUTES les données seront supprimées (IndexedDB + localStorage).',async()=>{await dbClear('jobs');await dbClear('clients');await dbClear('ca');localStorage.clear();location.reload();});}
+
+/* ──────────────────────────────────────────────
+   NET CALCULATOR
+────────────────────────────────────────────── */
+let payStatus='pending';
+function setStatus(s){
+  payStatus=s;
+  $('st-paid').className='status-pill '+(s==='paid'?'sp-paid':'');
+  $('st-paid').style.cssText=s==='paid'?'':'background:var(--surf2);color:var(--txt2);border-color:var(--bdr);';
+  $('st-pend').className='status-pill '+(s==='pending'?'sp-pend':'');
+  $('st-pend').style.cssText=s==='pending'?'':'background:var(--surf2);color:var(--txt2);border-color:var(--bdr);';
+}
+setStatus('pending');
+
+function calcNet(){
+  const price=parseFloat(gv('c-pr')||0);
+  if(!price){$('net-box').style.display='none';return;}
+  const p=gl('cdp')||{};
+  const tvaN=parseFloat(p.tv||10)/100;
+  const urN=parseFloat(p.ur||22)/100;
+  const kmC=parseFloat(p.km||0.18);
+  const ht=price/(1+tvaN);
+  const tva=price-ht;
+  const ur=ht*urN;
+  const fuel=kmC*20; // estimation ~20km moyen
+  const net=ht-ur-fuel;
+  $('nc-tva-r').textContent=Math.round(tvaN*100);
+  $('nc-ur-r').textContent=Math.round(urN*100);
+  $('nc-ht').textContent=`${fa(ht)} €`;
+  $('nc-tva').textContent=`${fa(tva)} €`;
+  $('nc-ur').textContent=`- ${fa(ur)} €`;
+  $('nc-fuel').textContent=`- ${fa(fuel)} €`;
+  $('nc-net').textContent=`${fa(net)} €`;
+  $('net-box').style.display='block';
+}
+
+/* ──────────────────────────────────────────────
+   SIGNATURE
+────────────────────────────────────────────── */
+let sigPad=null, sigData=null;
+
+function initSig(){
+  const canvas=$('sig-inline');
+  if(!canvas||sigPad) return;
+  // Resize to container
+  const rect=canvas.parentElement.getBoundingClientRect();
+  canvas.width=rect.width||320; canvas.height=140;
+  sigPad=new SignaturePad(canvas,{penColor:dark?'#E8EBF4':'#181B26',backgroundColor:'transparent',minWidth:.8,maxWidth:2.5});
+  sigPad.addEventListener('endStroke',()=>{
+    $('sig-iph').style.opacity='0';
+    sigData=sigPad.toDataURL();
+    $('sig-status').style.display='flex';
+    vib([5]);
+  });
+}
+function clearInlineSig(){if(sigPad){sigPad.clear();sigData=null;$('sig-iph').style.opacity='1';$('sig-status').style.display='none';}}
+
+/* ──────────────────────────────────────────────
+   MAGIC PARSER 2.0
+────────────────────────────────────────────── */
+/* Known locations DB */
+const KNOWN_LOCS={
+  airports:{
+    'cdg':    {name:'Aéroport CDG — Roissy',      fare:55},
+    'roissy': {name:'Aéroport CDG — Roissy',      fare:55},
+    'orly':   {name:'Aéroport d\'Orly',           fare:45},
+    'beauvais':{name:'Aéroport de Beauvais',       fare:90},
+    'le bourget':{name:'Aéroport du Bourget',      fare:50},
+    'lyon saint-exupéry':{name:'Aéroport Lyon',   fare:60},
+    'nice côte d\'azur':{name:'Aéroport Nice',    fare:40},
+    'amsterdam':{name:'Aéroport Amsterdam Schiphol',fare:150},
+  },
+  stations:{
+    'gare du nord':      {name:'Gare du Nord',    fare:null},
+    'gare de lyon':      {name:'Gare de Lyon',    fare:null},
+    'gare montparnasse': {name:'Gare Montparnasse',fare:null},
+    'gare saint-lazare': {name:'Gare Saint-Lazare',fare:null},
+    'gare de l\'est':    {name:'Gare de l\'Est',  fare:null},
+  }
+};
+
+function parseMagic(){
+  const raw=gv('magic-input');
+  if(!raw.trim()){toast('Collez un message d\'abord','err');return;}
+  const txt=raw, low=txt.toLowerCase();
+  let n=0;
+
+  /* PRIX */
+  const PRX=[/(?:prix|montant|tarif|total|course|forfait|prestation)[^\d]*(\d+[,.]?\d*)\s*€?/i,/(\d+[,.]?\d*)\s*€/,/€\s*(\d+[,.]?\d*)/,/EUR\s*(\d+[,.]?\d*)/i,/(\d+[,.]?\d*)\s*euros?/i];
+  for(const rx of PRX){const m=txt.match(rx);if(m){sv('c-pr',m[1].replace(',','.'));n++;calcNet();break;}}
+
+  /* DATE */
+  if(low.includes("aujourd'hui")||low.includes('aujd')){$('c-dt').valueAsDate=new Date();n++;}
+  else if(low.includes('demain')){const d=new Date();d.setDate(d.getDate()+1);$('c-dt').valueAsDate=d;n++;}
+  else if(low.includes('après-demain')||low.includes('apres-demain')){const d=new Date();d.setDate(d.getDate()+2);$('c-dt').valueAsDate=d;n++;}
+  else{
+    const MOIS={'jan':1,'fév':2,'fev':2,'mar':3,'avr':4,'mai':5,'juin':6,'juil':7,'aoû':8,'aou':8,'sep':9,'oct':10,'nov':11,'déc':12,'dec':12};
+    const fm=txt.match(/(\d{1,2})\s+(\w{3,10})\s*(\d{4})?/);
+    if(fm){const mo=Object.entries(MOIS).find(([k])=>fm[2].toLowerCase().startsWith(k));if(mo){const y=fm[3]||NOW.getFullYear();sv('c-dt',`${y}-${pad(mo[1])}-${fm[1].padStart(2,'0')}`);n++;}}
+    else{const nd=txt.match(/(\d{1,2})[\/\-\.](\d{1,2})(?:[\/\-\.](\d{2,4}))?/);if(nd){const y=nd[3]?(nd[3].length===2?'20'+nd[3]:nd[3]):NOW.getFullYear();sv('c-dt',`${y}-${nd[2].padStart(2,'0')}-${nd[1].padStart(2,'0')}`);n++;}}
+  }
+
+  /* HEURE */
+  const hm=txt.match(/(\d{1,2})[hH:](\d{2})?(?!\d)/);
+  if(hm){sv('c-tm',pad(parseInt(hm[1]))+':'+(hm[2]||'00').padStart(2,'0'));n++;}
+
+  /* NOM */
+  const NMX=[/(?:Mr\.?|Mme\.?|M\.?|Dr\.?|Mlle\.?)\s+([A-ZÀ-ÜA-Za-zà-ü][\w\-àâäéèêëïîôùûüç]*(?:\s+[A-ZÀ-Üa-zà-ü][\w\-àâäéèêëïîôùûüç]*)?)/,/(?:client|pour|passager|pax|nom)[:\s]+([A-ZÀ-Üa-zà-ü][\w\-àâäéèêëïîôùûüç]*(?:\s+[A-ZÀ-Üa-zà-ü][\w\-àâäéèêëïîôùûüç]*)?)/i];
+  for(const rx of NMX){const m=txt.match(rx);if(m){const p=m[1].trim().split(/\s+/);sv('c-fn',p[0]);if(p[1])sv('c-ln',p.slice(1).join(' '));n++;break;}}
+
+  /* TÉLÉPHONE */
+  const ph=txt.match(/(?:\+33|0033|0)[1-9][\s.\-]?(?:\d{2}[\s.\-]?){4}/);
+  if(ph){sv('c-tel',ph[0].trim());n++;}
+
+  /* EMAIL */
+  const em=txt.match(/[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/);
+  if(em){sv('c-em',em[0]);n++;}
+
+  /* LIEUX CONNUS — aéroports & gares */
+  let depSet=false, arrSet=false;
+  for(const [key,loc] of Object.entries({...KNOWN_LOCS.airports,...KNOWN_LOCS.stations})){
+    if(low.includes(key)){
+      const isArr=/(?:vers|à|destination|arrivée|arrive|drop|aller à)[^\n]*/.test(low.slice(0,low.indexOf(key)));
+      if(!depSet&&!isArr){sv('c-fr',loc.name);depSet=true;if(loc.fare&&!gv('c-pr')){sv('c-pr',loc.fare.toString());calcNet();}n++;}
+      else if(!arrSet){sv('c-to',loc.name);arrSet=true;if(loc.fare&&!gv('c-pr')){sv('c-pr',loc.fare.toString());calcNet();}n++;}
+    }
+  }
+
+  /* DÉPART générique */
+  if(!depSet){
+    const DR=[/(?:de|depuis|départ|prise en charge|pec|pick[ -]?up|from|au départ)[:\s]+([^\n,→➔\-–|]{4,50})/i];
+    for(const rx of DR){const m=txt.match(rx);if(m){sv('c-fr',m[1].trim());n++;break;}}
+  }
+  /* ARRIVÉE générique */
+  if(!arrSet){
+    const AR=[/(?:à|vers|destination|arrivée|arrive|drop[ -]?off|to|jusqu'à)[:\s]+([^\n,→➔\-–|]{4,50})/i,/(?:→|➔|=>|->)\s*([^\n,|]{4,50})/];
+    for(const rx of AR){const m=txt.match(rx);if(m){sv('c-to',m[1].trim());n++;break;}}
+  }
+
+  /* PAIEMENT */
+  const PAY_KW=['espèces','cash','liquide','cb','carte','virement','lydia','paypal','application','appli','stripe'];
+  const pw=PAY_KW.find(k=>low.includes(k));
+  if(pw){sv('c-py',pw.charAt(0).toUpperCase()+pw.slice(1));n++;}
+
+  /* PASSAGERS */
+  const pxm=txt.match(/(\d+)\s*(?:pax|passager|pers\b|personne)/i);
+  if(pxm){const v=parseInt(pxm[1]);if(v>=1&&v<=7)$('c-px').value=String(v);n++;}
+
+  /* AUTO-FILL from client DB */
+  const ctel=gv('c-tel');
+  if(ctel) autoFillFromClient(ctel);
+
+  toast(n>0?`${n} champ${n>1?'s':''} rempli${n>1?'s':''}. Vérifiez avant d'enregistrer.`:'Aucun élément reconnu — saisir manuellement','info');
+  if(n>0) sv('magic-input','');
+}
+
+async function autoFillFromClient(tel){
+  const clients=await dbGetAll('clients');
+  const c=clients.find(cl=>cl.tel&&cl.tel.replace(/\D/g,'')===tel.replace(/\D/g,''));
+  if(c){
+    if(!gv('c-fn'))sv('c-fn',c.fn||'');
+    if(!gv('c-ln'))sv('c-ln',c.ln||'');
+    if(!gv('c-em'))sv('c-em',c.em||'');
+    showRecogBanner(c);
+    toast(`Client reconnu : ${c.fn} ${c.ln||''} 👋`,'info');
+  }
+}
+
+/* ──────────────────────────────────────────────
+   FORM : RESET / SAVE
+────────────────────────────────────────────── */
+let editId=null;
+
+function resetForm(){
+  ['c-fn','c-ln','c-tel','c-em','c-fr','c-to','c-pr','c-nt','c-py','magic-input','c-km'].forEach(id=>sv(id,''));
+  $('c-dt').valueAsDate=new Date();
+  $('c-tm').value=pad(NOW.getHours())+':'+pad(NOW.getMinutes());
+  $('c-px').value='1'; $('c-vt').value='Berline';
+  if($('c-tag')) $('c-tag').value='';
+  setStatus('pending');
+  clearInlineSig(); sigData=null;
+  editId=null;
+  $('edit-banner').style.display='none';
+  $('save-btn').textContent='Enregistrer & générer le bon';
+  $('net-box').style.display='none';
+}
+function cancelEdit(){resetForm();}
+
+async function saveAndGen(){
+  const fn=gv('c-fn'),ln=gv('c-ln'),price=gv('c-pr');
+  if(!fn&&!ln){toast('Nom du client requis','err');vib([30,10,30]);return;}
+  if(!price||parseFloat(price)<=0){toast('Prix invalide','err');vib([30,10,30]);return;}
+
+  const client=[fn,ln].filter(Boolean).join(' ');
+  const p=gl('cdp')||{};
+  const tvaN=parseFloat(p.tv||10)/100;
+  const urN=parseFloat(p.ur||22)/100;
+  const kmC=parseFloat(p.km||0.18);
+  const priceN=parseFloat(price);
+  const ht=priceN/(1+tvaN);
+  const netEst=ht-(ht*urN)-(kmC*20);
+
+  const jobs=await dbGetAll('jobs');
+
+  if(editId){
+    const idx=jobs.findIndex(j=>j.id===editId);
+    if(idx>-1){
+      jobs[idx]={...jobs[idx],client,fn,ln,phone:gv('c-tel'),email:gv('c-em'),
+        date:gv('c-dt'),time:gv('c-tm')||'Non précisé',
+        from:gv('c-fr')||'Non précisé',to:gv('c-to')||'Non précisé',
+        pax:gv('c-px')||'1',vtype:gv('c-vt')||'Berline',
+        pay:gv('c-py'),notes:gv('c-nt'),status:payStatus,
+        price:fa(price),netEst:fa(netEst),sig:sigData,
+        updatedAt:new Date().toISOString()};
+      await dbPut('jobs',jobs[idx]);
+    }
+    toast('Mission mise à jour !'); resetForm(); return;
+  }
+
+  const num=nextJobNum();
+  const job={id:Date.now(),num,client,fn,ln,
+    phone:gv('c-tel'),email:gv('c-em'),
+    date:gv('c-dt'),time:gv('c-tm')||'Non précisé',
+    from:gv('c-fr')||'Non précisé',to:gv('c-to')||'Non précisé',
+    pax:gv('c-px')||'1',vtype:gv('c-vt')||'Berline',
+    pay:gv('c-py'),notes:gv('c-nt'),status:payStatus,
+    tag:gv('c-tag')||'',km:gv('c-km')||'',
+    price:fa(price),netEst:fa(netEst),sig:sigData,
+    createdAt:new Date().toISOString()};
+
+  await dbPut('jobs',job);
+
+  // Auto-save / update client in directory
+  await autoSaveClient(job);
+
+  resetForm(); toast('Mission enregistrée !'); vib([10,5,10]);
+  generatePDF(job,'BC');
+}
+
+/* ──────────────────────────────────────────────
+   HISTORY — filters state
+────────────────────────────────────────────── */
+let histFilter='active'; // active | paid | pending | archived | all
+let tagFilter='';
+
+function setFilter(f,el){
+  histFilter=f;
+  document.querySelectorAll('#fbar .fpill').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  renderHist();
+}
+function setTagFilter(t,el){
+  tagFilter=t;
+  document.querySelectorAll('#tag-fbar .fpill').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  renderHist();
+}
+function clearDateFilter(){sv('f-from','');sv('f-to','');renderHist();}
+
+const TAG_LABELS={airport:'✈️ Aéroport',station:'🚉 Gare',vip:'⭐ VIP',corp:'🏢 Entreprise',long:'🛣 Longue dist.'};
+const TAG_CLASS={airport:'jtag-airport',station:'jtag-station',vip:'jtag-vip',corp:'jtag-corp',long:'jtag-long'};
+
+async function renderStats(){
+  const jobs=await dbGetAll('jobs');
+  const active=jobs.filter(j=>j.archived!==true);
+  const tot=active.reduce((s,j)=>s+parseFloat(j.price||0),0);
+  const mn=new Date();
+  const mo=active.filter(j=>{const d=new Date(j.date);return d.getMonth()===mn.getMonth()&&d.getFullYear()===mn.getFullYear();});
+  const mca=mo.reduce((s,j)=>s+parseFloat(j.price||0),0);
+  const pending=active.filter(j=>j.status==='pending').reduce((s,j)=>s+parseFloat(j.price||0),0);
+  const archived=jobs.filter(j=>j.archived===true).length;
+  $('srow').innerHTML=`
+    <div class="sbox"><div class="sval" style="color:var(--accent)">${active.length}</div><div class="slb">Actives</div></div>
+    <div class="sbox"><div class="sval" style="color:var(--green)">${mca.toFixed(0)}€</div><div class="slb">CA mois</div></div>
+    <div class="sbox"><div class="sval" style="color:${pending>0?'var(--amber)':'var(--txt2)'}">${pending.toFixed(0)}€</div><div class="slb">En attente</div></div>`;
+}
+
+async function renderHist(){
+  const list=$('hl');
+  const q=(gv('srch')||'').toLowerCase();
+  const fFrom=gv('f-from'), fTo=gv('f-to');
+  let jobs=(await dbGetAll('jobs')).slice().reverse();
+
+  // Status / archive filter
+  if(histFilter==='active')   jobs=jobs.filter(j=>!j.archived);
+  else if(histFilter==='paid')    jobs=jobs.filter(j=>!j.archived&&j.status==='paid');
+  else if(histFilter==='pending') jobs=jobs.filter(j=>!j.archived&&j.status==='pending');
+  else if(histFilter==='archived')jobs=jobs.filter(j=>j.archived===true);
+  // 'all' = no filter
+
+  // Tag filter
+  if(tagFilter) jobs=jobs.filter(j=>j.tag===tagFilter);
+
+  // Date range filter
+  if(fFrom) jobs=jobs.filter(j=>j.date&&j.date>=fFrom);
+  if(fTo)   jobs=jobs.filter(j=>j.date&&j.date<=fTo);
+
+  // Text search
+  if(q) jobs=jobs.filter(j=>
+    (j.client||'').toLowerCase().includes(q)||
+    (j.phone||'').toLowerCase().includes(q)||
+    (j.from||'').toLowerCase().includes(q)||
+    (j.to||'').toLowerCase().includes(q)||
+    (j.num?`#${j.num}`:'').includes(q)||
+    (j.tag&&TAG_LABELS[j.tag]&&TAG_LABELS[j.tag].toLowerCase().includes(q))
+  );
+
+  if(!jobs.length){list.innerHTML=`<div class="empty"><div class="ei">${q||tagFilter||fFrom?'🔎':'📭'}</div><p>${q||tagFilter||fFrom?'Aucun résultat pour ces filtres.':'Aucune mission ici.'}</p></div>`;return;}
+
+  list.innerHTML=jobs.map(j=>{
+    const sp=j.archived
+      ? `<span class="badge badge-arch">📦 Archivée</span>`
+      : j.status==='paid'
+        ? `<span class="status-pill sp-paid"><span class="sp-dot"></span>Payé</span>`
+        : `<span class="status-pill sp-pend"><span class="sp-dot"></span>En attente</span>`;
+    const mod=j.updatedAt?`<span class="badge badge-am">modifié</span>`:'';
+    const tagHtml=j.tag&&TAG_LABELS[j.tag]?`<span class="jtag ${TAG_CLASS[j.tag]||'jtag-custom'}">${TAG_LABELS[j.tag]}</span>`:'';
+    const kmHtml=j.km?`<span style="font-size:.62rem;color:var(--txt3);margin-top:1px;">${j.km} km</span>`:'';
+    const archBtn=j.archived
+      ? `<button class="btn btn-g btn-sm btn-ic" onclick="unarchive(${j.id})" title="Désarchiver">📂</button>`
+      : `<button class="btn btn-g btn-sm btn-ic" onclick="archiveJob(${j.id})" title="Archiver">📦</button>`;
+    const pendingActions=(!j.archived&&j.status==='pending')?`<button class="btn btn-a btn-sm btn-ic" onclick="openRelance(${j.id})" title="Relancer paiement">💬</button>`:'';
+    return `<div class="hi" id="hi-${j.id}">
+      <div class="htop" onclick="togD(${j.id})">
+        <div class="hleft">
+          <div class="hname">${j.client||'—'} ${mod}</div>
+          ${j.phone?`<div class="hph">${j.phone}</div>`:''}
+          <div class="hmeta"><span class="hdate">${fmtD(j.date)} · ${j.time}</span>${sp}${tagHtml}</div>
+          <div class="hrt"><span>${(j.from||'').substring(0,22)}</span><span style="color:var(--txt3)">→</span><span>${(j.to||'').substring(0,22)}</span></div>
+        </div>
+        <div class="hr">
+          <div class="hpr">${j.price}€</div>
+          <div class="hnum">${j.num?`#${pad(j.num)}`:''}</div>
+          ${j.netEst?`<div style="font-size:.62rem;color:var(--green);opacity:.6;margin-top:2px;">net ~${parseFloat(j.netEst).toFixed(0)}€</div>`:''}
+          ${kmHtml}
+        </div>
+      </div>
+      <div class="hdet" id="d-${j.id}">
+        <button class="accbtn" onclick="togAcc(${j.id},event)">Voir toutes les informations <span class="arro" id="ar-${j.id}">▾</span></button>
+        <div id="ac-${j.id}" style="display:none;">
+          <div class="dg">
+            <div class="df"><div class="dfl">Client</div><div class="dfv">${j.client||'—'}</div></div>
+            <div class="df"><div class="dfl">Téléphone</div><div class="dfv">${j.phone||'—'}</div></div>
+            <div class="df"><div class="dfl">Email</div><div class="dfv">${j.email||'—'}</div></div>
+            <div class="df"><div class="dfl">Date & Heure</div><div class="dfv">${fmtD(j.date)} à ${j.time}</div></div>
+            <div class="df"><div class="dfl">Départ</div><div class="dfv">${j.from||'—'}</div></div>
+            <div class="df"><div class="dfl">Arrivée</div><div class="dfv">${j.to||'—'}</div></div>
+            <div class="df"><div class="dfl">Passagers & Véhicule</div><div class="dfv">${j.pax||1} pax · ${j.vtype||'Berline'}</div></div>
+            <div class="df"><div class="dfl">Règlement</div><div class="dfv">${j.pay||'—'}</div></div>
+            <div class="df"><div class="dfl">Statut</div><div class="dfv">${j.archived?'📦 Archivée':j.status==='paid'?'✅ Payé':'🕐 En attente'}</div></div>
+            <div class="df"><div class="dfl">Tag</div><div class="dfv">${j.tag&&TAG_LABELS[j.tag]?TAG_LABELS[j.tag]:'—'}</div></div>
+            <div class="df"><div class="dfl">Km parcourus</div><div class="dfv">${j.km||'—'}</div></div>
+            ${j.notes?`<div class="df" style="grid-column:span 2"><div class="dfl">Notes</div><div class="dfv">${j.notes}</div></div>`:''}
+            <div class="df"><div class="dfl">Prix TTC</div><div class="dfv gv">${j.price} €</div></div>
+            <div class="df"><div class="dfl">Net estimé</div><div class="dfv" style="color:var(--green)">${j.netEst||'—'} €</div></div>
+            <div class="df"><div class="dfl">Référence</div><div class="dfv">${j.num?`BC-${pad(j.num)}`:'—'}</div></div>
+            ${j.sig?`<div class="df" style="grid-column:span 2"><div class="dfl">Signature</div><img src="${j.sig}" style="max-height:60px;margin-top:4px;border:1px solid var(--bdr);border-radius:6px;"></div>`:''}
+          </div>
+        </div>
+        <div class="hacts open" style="flex-wrap:wrap;gap:6px;">
+          <button class="btn btn-g btn-sm" style="flex:1;min-width:60px;" onclick="rePDF(${j.id},'BC')">📄 Bon</button>
+          <button class="btn btn-s btn-sm" style="flex:1;min-width:60px;" onclick="rePDF(${j.id},'FAC')">🧾 Facture</button>
+          <button class="btn btn-p btn-sm" style="flex:1;min-width:60px;" onclick="transferToCA(${j.id})" title="Transférer en CA">📊 → CA</button>
+          <button class="btn btn-g btn-sm btn-ic" onclick="duplicateJob(${j.id})" title="Dupliquer">⎘</button>
+          <button class="btn btn-g btn-sm btn-ic" onclick="openCtrl(${j.id})" title="Mode contrôle">🛡</button>
+          ${pendingActions}
+          ${archBtn}
+          <button class="btn btn-a btn-sm btn-ic" onclick="openEd(${j.id})" title="Modifier">✏️</button>
+          <button class="btn btn-d btn-sm btn-ic" onclick="confDel(${j.id})" title="Supprimer">🗑</button>
+        </div>
+      </div>
+    </div>`;}).join('');
+}
+
+function togD(id){$(`d-${id}`).classList.toggle('open');}
+function togAcc(id,e){e.stopPropagation();const ac=$(`ac-${id}`),ar=$(`ar-${id}`);const op=ac.style.display==='block';ac.style.display=op?'none':'block';ar.classList.toggle('open',!op);}
+
+/* ── ARCHIVE ── */
+async function archiveJob(id){
+  const jobs=await dbGetAll('jobs');
+  const j=jobs.find(j=>j.id===id);if(!j)return;
+  j.archived=true;j.archivedAt=new Date().toISOString();
+  await dbPut('jobs',j);
+  renderHist();renderStats();toast('Course archivée 📦','info');vib([8]);
+}
+async function unarchive(id){
+  const jobs=await dbGetAll('jobs');
+  const j=jobs.find(j=>j.id===id);if(!j)return;
+  j.archived=false;delete j.archivedAt;
+  await dbPut('jobs',j);
+  renderHist();renderStats();toast('Course restaurée 📋','ok');
+}
+
+/* ── TRANSFER TO CA ── */
+async function transferToCA(id){
+  const jobs=await dbGetAll('jobs');
+  const j=jobs.find(j=>j.id===id);if(!j)return;
+  // Check not already transferred
+  if(j.transferredToCA){
+    showConfirm('Déjà transféré','Cette course a déjà été transférée en CA. Transférer à nouveau ?',async()=>{await doTransfer(j);});
+    return;
+  }
+  await doTransfer(j);
+}
+async function doTransfer(j){
+  const entry={
+    id:Date.now(),
+    date:j.date,
+    time:j.time==='Non précisé'?'':j.time,
+    desc:`Course BC-${j.num?pad(j.num):j.id} — ${j.client} (${(j.from||'').substring(0,20)} → ${(j.to||'').substring(0,20)})`,
+    cat:'course',
+    amt:j.price
+  };
+  await dbPut('ca',entry);
+  // Mark job as transferred
+  j.transferredToCA=true;
+  await dbPut('jobs',j);
+  renderHist();
+  toast(`Course transférée en Finances ✓`,'ok');vib([10,5,10]);
+}
+
+/* ── DUPLICATE ── */
+async function duplicateJob(id){
+  const jobs=await dbGetAll('jobs');
+  const j=jobs.find(x=>x.id===id);if(!j)return;
+  // Pre-fill the form
+  sv('c-fn',j.fn||''); sv('c-ln',j.ln||''); sv('c-tel',j.phone||''); sv('c-em',j.email||'');
+  sv('c-fr',j.from==='Non précisé'?'':j.from||'');
+  sv('c-to',j.to==='Non précisé'?'':j.to||'');
+  sv('c-pr',j.price||''); sv('c-nt',j.notes||'');
+  $('c-px').value=j.pax||'1'; $('c-vt').value=j.vtype||'Berline';
+  if(j.tag) $('c-tag').value=j.tag;
+  $('c-dt').valueAsDate=new Date(); // today
+  $('c-tm').value=pad(NOW.getHours())+':'+pad(NOW.getMinutes());
+  setStatus('pending');
+  calcNet();
+  nav('create',$('tab-create'),'tab');
+  toast(`Formulaire pré-rempli depuis BC-${j.num?pad(j.num):j.id} ⎘`,'info');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* ── RELANCE PAIEMENT ── */
+let relanceJobId=null;
+async function openRelance(id){
+  const jobs=await dbGetAll('jobs');
+  const j=jobs.find(x=>x.id===id);if(!j)return;
+  relanceJobId=id;
+  const p=gl('cdp')||{};
+  $('relance-msg').value=`Bonjour ${j.client||''},\n\nJe me permets de vous rappeler qu'une course du ${fmtD(j.date)} (${(j.from||'').substring(0,25)} → ${(j.to||'').substring(0,25)}) est en attente de règlement.\n\nMontant dû : ${j.price} €\nRéférence : BC-${j.num?pad(j.num):j.id}\n\nMerci de procéder au règlement dans les meilleurs délais.\n\nCordialement,\n${p.dn||p.nm||'Votre chauffeur'}`;
+  openOv('ov-relance');
+}
+async function sendRelance(channel){
+  const jobs=await dbGetAll('jobs');
+  const j=jobs.find(x=>x.id===relanceJobId);
+  const msg=encodeURIComponent($('relance-msg').value);
+  const tel=(j?.phone||'').replace(/\D/g,'');
+  closeOv('ov-relance');
+  if(channel==='whatsapp') window.open(`https://wa.me/${tel.startsWith('0')?'33'+tel.slice(1):tel}?text=${msg}`);
+  else window.open(`sms:${j?.phone||''}?body=${msg}`);
+  toast('Message de relance ouvert','ok');
+}
+
+/* ── SPARKLINE (7 jours) ── */
+async function renderSparkline(){
+  const ca=await dbGetAll('ca');
+  const jobs=await dbGetAll('jobs');
+  const bars=$('spark-bars');if(!bars)return;
+  const days=[];
+  for(let i=6;i>=0;i--){
+    const d=new Date();d.setDate(d.getDate()-i);d.setHours(0,0,0,0);
+    const iso=d.toISOString().split('T')[0];
+    const dayLabel=i===0?'Auj':d.toLocaleDateString('fr-FR',{weekday:'short'}).slice(0,3);
+    // Sum from CA entries + jobs for that day
+    const caAmt=ca.filter(e=>e.date===iso&&e.cat!=='charge').reduce((s,e)=>s+parseFloat(e.amt||0),0);
+    const jobAmt=jobs.filter(j=>j.date===iso&&!j.archived).reduce((s,j)=>s+parseFloat(j.price||0),0);
+    // Use CA if entries exist, else jobs
+    const amt=caAmt>0?caAmt:jobAmt;
+    days.push({label:dayLabel,amt,iso,isToday:i===0});
+  }
+  const max=Math.max(...days.map(d=>d.amt),1);
+  bars.innerHTML=days.map(d=>{
+    const pct=Math.max((d.amt/max)*100,d.amt>0?8:3);
+    const col=d.isToday?'var(--accent)':d.amt>0?'var(--green)':'var(--surf3)';
+    return `<div class="spark-bar-wrap" title="${d.label}: ${d.amt.toFixed(0)}€">
+      <div class="spark-bar" style="height:${pct}%;background:${col};opacity:${d.isToday?1:.7};"></div>
+      <div class="spark-day">${d.label}</div>
+    </div>`;
+  }).join('');
+}
+
+
+
+async function openEd(id){
+  const jobs=await dbGetAll('jobs');
+  const j=jobs.find(j=>j.id===id);if(!j)return;
+  $('edit-ref').textContent=j.num?`BC-${pad(j.num)}`:`#${id}`;
+  sv('e-fn',j.fn);sv('e-ln',j.ln);sv('e-tel',j.phone);sv('e-em',j.email);
+  sv('e-dt',j.date);sv('e-tm',j.time==='Non précisé'?'':j.time);
+  sv('e-fr',j.from==='Non précisé'?'':j.from);sv('e-to',j.to==='Non précisé'?'':j.to);
+  $('e-px').value=j.pax||'1';$('e-vt').value=j.vtype||'Berline';
+  sv('e-py',j.pay);sv('e-nt',j.notes);sv('e-pr',j.price);
+  $('e-st').value=j.status||'pending';
+  if($('e-tag')) $('e-tag').value=j.tag||'';
+  if($('e-km')) sv('e-km',j.km||'');
+  openOv('ov-edit');$('ov-edit')._eid=id;
+}
+async function saveEdit(){
+  const id=$('ov-edit')._eid;
+  const jobs=await dbGetAll('jobs');
+  const idx=jobs.findIndex(j=>j.id===id);if(idx<0){closeOv('ov-edit');return;}
+  const fn=gv('e-fn'),ln=gv('e-ln'),price=gv('e-pr');
+  if(!fn&&!ln){toast('Nom requis','err');return;}
+  if(!price||parseFloat(price)<=0){toast('Prix invalide','err');return;}
+  const p=gl('cdp')||{};
+  const tvaN=parseFloat(p.tv||10)/100,urN=parseFloat(p.ur||22)/100,kmC=parseFloat(p.km||0.18);
+  const ht=parseFloat(price)/(1+tvaN);
+  const netEst=ht-(ht*urN)-(kmC*20);
+  jobs[idx]={...jobs[idx],fn,ln,client:[fn,ln].filter(Boolean).join(' '),
+    phone:gv('e-tel'),email:gv('e-em'),date:gv('e-dt'),time:gv('e-tm')||'Non précisé',
+    from:gv('e-fr')||'Non précisé',to:gv('e-to')||'Non précisé',
+    pax:$('e-px').value,vtype:$('e-vt').value,pay:gv('e-py'),notes:gv('e-nt'),
+    status:$('e-st').value,
+    tag:$('e-tag')?$('e-tag').value:'',
+    km:gv('e-km')||'',
+    price:fa(price),netEst:fa(netEst),updatedAt:new Date().toISOString()};
+  await dbPut('jobs',jobs[idx]);
+  closeOv('ov-edit');renderHist();renderStats();toast('Mission modifiée !');vib([8,4,8]);
+}
+
+function confDel(id){showConfirm('Supprimer la mission','Action irréversible.',async()=>{await dbDel('jobs',id);renderHist();renderStats();toast('Supprimé');});}
+async function confClear(){showConfirm('Effacer tout l\'historique','Toutes les missions seront supprimées.',async()=>{await dbClear('jobs');renderHist();renderStats();toast('Historique effacé');});}
+async function rePDF(id,type){const jobs=await dbGetAll('jobs');const j=jobs.find(j=>j.id===id);if(j)generatePDF(j,type);}
+
+/* ──────────────────────────────────────────────
+   CONTROL MODE (Police)
+────────────────────────────────────────────── */
+async function openCtrl(id){
+  const jobs=await dbGetAll('jobs');
+  const j=jobs.find(j=>j.id===id);
+  if(!j){toast('Mission introuvable','err');return;}
+  const p=gl('cdp')||{};
+  $('ctrl-content').innerHTML=`
+    <div style="text-align:center;margin-bottom:20px;">
+      <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:rgba(79,142,247,.8);margin-bottom:6px;">BON DE COMMANDE VTC</div>
+      <div style="font-size:2rem;font-weight:800;color:#fff;letter-spacing:-.5px;">${p.nm||'VTC'}</div>
+      <div style="font-size:.8rem;color:rgba(255,255,255,.5);margin-top:4px;">${p.vt?`Licence ${p.vt}`:'—'} · ${p.si?`SIRET ${p.si}`:'—'}</div>
+    </div>
+    <div class="ctrl-badge">
+      <div style="font-size:2.5rem;font-weight:800;color:#4F8EF7;font-family:'DM Mono',monospace;">BC-${j.num?pad(j.num):String(j.id).slice(-5)}</div>
+      <div style="font-size:1.4rem;font-weight:700;color:#fff;margin-top:6px;">${j.client}</div>
+      <div style="font-size:1rem;color:rgba(255,255,255,.7);margin-top:4px;">${fmtD(j.date)} à ${j.time}</div>
+      <div style="font-size:.9rem;color:rgba(255,255,255,.5);margin-top:8px;line-height:1.6;">
+        🟢 ${j.from}<br>🔴 ${j.to}
+      </div>
+      <div style="font-size:1.6rem;font-weight:800;color:#2DD4A0;margin-top:10px;">${j.price} €</div>
+    </div>
+    ${j.sig?`<div style="text-align:center;margin:10px 0;"><div style="font-size:.65rem;color:rgba(255,255,255,.4);margin-bottom:5px;">Signature client</div><img src="${j.sig}" style="max-height:70px;border:1px solid rgba(255,255,255,.15);border-radius:8px;"></div>`:''}
+    <div class="ctrl-law">
+      Art. L.3122-9 du Code des transports · Ce document atteste d'une réservation préalable effectuée avant la prise en charge.<br>
+      Véhicule: ${p.vh||'—'} · Immat: ${p.pl||'—'}
+    </div>`;
+  openOv('ctrl-mode');
+  vib([10,5,10,5,10]);
+  // Force landscape hint
+  if(screen.orientation&&screen.orientation.lock){try{screen.orientation.lock('portrait');}catch{}}
+}
+function closeCtrl(){closeOv('ctrl-mode');}
+
+/* ──────────────────────────────────────────────
+   CLIENTS MODULE — enriched
+────────────────────────────────────────────── */
+
+/* ─ Star rating ─ */
+let clStarVal=0;
+function setStar(v){
+  clStarVal=v;
+  document.querySelectorAll('.star-btn').forEach(b=>{
+    b.classList.toggle('active',parseInt(b.dataset.v)<=v);
+  });
+}
+
+/* ─ Open client modal ─ */
+async function openClientModal(id){
+  clStarVal=0;
+  setStar(0);
+  $('cl-modal-t').textContent=id?'✏️ Modifier le client':'👤 Nouveau client';
+  $('cl-del-btn').style.display=id?'block':'none';
+  $('cl-hist-section').style.display='none';
+  ['cl-fn','cl-ln','cl-tel','cl-em','cl-co','cl-job','cl-addr','cl-waddr','cl-pref','cl-notes'].forEach(i=>sv(i,''));
+
+  if(id){
+    const all=await dbGetAll('clients');
+    const c=all.find(x=>String(x.id)===String(id));
+    if(c){
+      sv('cl-fn',c.fn);sv('cl-ln',c.ln);sv('cl-tel',c.tel);sv('cl-em',c.em);
+      sv('cl-co',c.co);sv('cl-job',c.job);
+      sv('cl-addr',c.addr);sv('cl-waddr',c.waddr);
+      sv('cl-pref',c.pref);sv('cl-notes',c.notes);
+      if(c.stars) setStar(c.stars);
+      // Load client job history
+      const jobs=await dbGetAll('jobs');
+      const cjobs=jobs.filter(j=>j.phone&&c.tel&&j.phone.replace(/\D/g,'')===c.tel.replace(/\D/g,'')||
+        (j.fn&&c.fn&&j.fn===c.fn&&j.ln&&c.ln&&j.ln===c.ln)).slice().reverse().slice(0,10);
+      if(cjobs.length){
+        $('cl-hist-section').style.display='block';
+        $('cl-hist-list').innerHTML=cjobs.map(j=>`
+          <div class="cl-hi">
+            <div class="cl-hi-top">
+              <span style="font-weight:600;">${fmtD(j.date)} · ${j.time}</span>
+              <span style="color:var(--green);font-family:'DM Mono',monospace;font-weight:700;">${j.price}€</span>
+            </div>
+            <div class="cl-hi-rt">${(j.from||'').substring(0,28)} → ${(j.to||'').substring(0,28)}</div>
+            <div class="cl-hi-rt" style="margin-top:2px;">${j.status==='paid'?'✅ Payé':'🕐 En attente'}</div>
+          </div>`).join('');
+      }
+    }
+  }
+  openOv('ov-cl');
+  $('ov-cl')._cid=id||null;
+}
+
+/* ─ Save client ─ */
+async function saveClient(){
+  const fn=gv('cl-fn'), tel=gv('cl-tel'), ln=gv('cl-ln');
+  if(!fn&&!ln){toast('Prénom ou nom requis','err');return;}
+  const id=$('ov-cl')._cid;
+  const all=await dbGetAll('clients');
+
+  // Check for duplicate by phone (merge if exists and different id)
+  let existingByTel=tel?all.find(c=>c.tel&&c.tel.replace(/\D/g,'')===tel.replace(/\D/g,'')&&String(c.id)!==String(id)):null;
+
+  const obj={
+    id:id||(Date.now()+'c'),
+    fn,ln,tel,em:gv('cl-em'),
+    co:gv('cl-co'),job:gv('cl-job'),
+    addr:gv('cl-addr'),waddr:gv('cl-waddr'),
+    pref:gv('cl-pref'),notes:gv('cl-notes'),
+    stars:clStarVal||0,
+    updatedAt:new Date().toISOString(),
+    createdAt:id?(all.find(c=>String(c.id)===String(id))?.createdAt||new Date().toISOString()):new Date().toISOString()
+  };
+
+  if(existingByTel&&!id){
+    // Merge: update existing instead of creating duplicate
+    const merged={...existingByTel,...obj,id:existingByTel.id,trips:existingByTel.trips||0};
+    await dbPut('clients',merged);
+    toast('Client existant mis à jour (même téléphone) ✓','info');
+  } else {
+    await dbPut('clients',obj);
+    toast(id?'Client modifié !':'Client ajouté !');
+  }
+  closeOv('ov-cl');renderClients();
+}
+
+/* ─ Delete client ─ */
+async function deleteClient(){
+  const id=$('ov-cl')._cid;if(!id)return;
+  showConfirm('Supprimer ce client','Ses courses restent dans l\'historique.',async()=>{
+    await dbDel('clients',id);
+    closeOv('ov-cl');renderClients();toast('Client supprimé');
+  });
+}
+
+/* ─ Render client grid ─ */
+async function renderClients(){
+  const grid=$('cl-grid');if(!grid)return;
+  const q=(gv('cl-srch')||'').toLowerCase();
+  const jobs=await dbGetAll('jobs');
+  let cl=(await dbGetAll('clients')).slice().sort((a,b)=>(b.trips||0)-(a.trips||0));
+  if(q) cl=cl.filter(c=>(c.fn+' '+(c.ln||'')).toLowerCase().includes(q)||(c.tel||'').includes(q)||(c.co||'').toLowerCase().includes(q));
+
+  if(!cl.length){
+    grid.innerHTML=`<div class="empty" style="grid-column:1/-1"><div class="ei">👥</div><p>${q?'Aucun résultat.':'Aucun client enregistré. Ils sont sauvegardés automatiquement à chaque mission.'}</p></div>`;
+    return;
+  }
+
+  const initials=c=>((c.fn||'?')[0]+((c.ln||'')[0]||'')).toUpperCase();
+  const stars=n=>'★'.repeat(n||0)+'☆'.repeat(5-(n||0));
+
+  grid.innerHTML=cl.map(c=>{
+    // Compute real stats from jobs
+    const cjobs=jobs.filter(j=>
+      (j.phone&&c.tel&&j.phone.replace(/\D/g,'')===c.tel.replace(/\D/g,''))||
+      (j.fn&&c.fn&&j.fn===c.fn&&j.ln&&c.ln&&j.ln===c.ln)
+    );
+    const totalCA=cjobs.reduce((s,j)=>s+parseFloat(j.price||0),0);
+    const lastJob=cjobs.slice().reverse()[0];
+    return `<div class="cl-card" onclick="openClientModal('${c.id}')">
+      <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:8px;">
+        <div class="cl-av">${initials(c)}</div>
+        <div style="flex:1;min-width:0;">
+          <div class="cl-name">${c.fn||''} ${c.ln||''}</div>
+          ${c.co?`<div class="cl-co">🏢 ${c.co}</div>`:''}
+          ${c.tel?`<div class="cl-ph">${c.tel}</div>`:''}
+          ${c.em?`<div style="font-size:.68rem;color:var(--txt3);">${c.em}</div>`:''}
+          ${c.stars?`<div class="cl-stars">${stars(c.stars)}</div>`:''}
+        </div>
+      </div>
+      <div class="cl-stats">
+        <div class="cl-stat"><div class="cl-sv">${cjobs.length}</div><div class="cl-sl">courses</div></div>
+        <div class="cl-stat"><div class="cl-sv" style="color:var(--green)">${totalCA.toFixed(0)}€</div><div class="cl-sl">CA total</div></div>
+        ${lastJob?`<div class="cl-stat"><div class="cl-sv" style="font-size:.7rem;font-family:'DM Mono',monospace;">${fmtD(lastJob.date)}</div><div class="cl-sl">dernière</div></div>`:''}
+      </div>
+      ${c.pref?`<div class="cl-prefs" style="margin-top:8px;">${c.pref.split(',').slice(0,3).map(p=>`<span class="cl-tag">${p.trim()}</span>`).join('')}</div>`:''}
+    </div>`;
+  }).join('');
+}
+
+/* ─ Client picker from mission form ─ */
+async function openClientPicker(){
+  sv('cpick-srch','');
+  await renderClientPicker();
+  openOv('ov-cpick');
+}
+
+async function renderClientPicker(){
+  const q=(gv('cpick-srch')||'').toLowerCase();
+  const jobs=await dbGetAll('jobs');
+  let cl=(await dbGetAll('clients')).slice().sort((a,b)=>(b.trips||0)-(a.trips||0));
+  if(q) cl=cl.filter(c=>(c.fn+' '+(c.ln||'')).toLowerCase().includes(q)||(c.tel||'').includes(q)||(c.co||'').toLowerCase().includes(q));
+
+  const list=$('cpick-list');if(!list)return;
+  if(!cl.length){
+    list.innerHTML=`<div class="empty"><div class="ei">👥</div><p>${q?'Aucun résultat.':'Répertoire vide.'}</p></div>`;
+    return;
+  }
+  const initials=c=>((c.fn||'?')[0]+((c.ln||'')[0]||'')).toUpperCase();
+  const cjobs_count=c=>jobs.filter(j=>(j.phone&&c.tel&&j.phone.replace(/\D/g,'')===c.tel.replace(/\D/g,''))||(j.fn===c.fn&&j.ln===c.ln)).length;
+
+  list.innerHTML=cl.map(c=>`
+    <div class="cpick-row" onclick="pickClient('${c.id}')">
+      <div class="cpick-av">${initials(c)}</div>
+      <div style="flex:1;min-width:0;">
+        <div class="cpick-nm">${c.fn||''} ${c.ln||''}</div>
+        <div class="cpick-sub">${[c.tel,c.co].filter(Boolean).join(' · ')}</div>
+      </div>
+      <div class="cpick-r">
+        <div style="color:var(--accent);font-weight:700;">${cjobs_count(c)}</div>
+        <div>courses</div>
+      </div>
+    </div>`).join('');
+}
+
+async function pickClient(id){
+  const all=await dbGetAll('clients');
+  const c=all.find(x=>String(x.id)===String(id));
+  if(!c){closeOv('ov-cpick');return;}
+  // Fill mission form
+  sv('c-fn',c.fn||'');
+  sv('c-ln',c.ln||'');
+  sv('c-tel',c.tel||'');
+  sv('c-em',c.em||'');
+  // Pre-fill home address as departure suggestion
+  if(c.addr&&!gv('c-fr')) sv('c-fr',c.addr);
+  // Pre-fill work address as arrival suggestion
+  if(c.waddr&&!gv('c-to')) sv('c-to',c.waddr);
+  // Inject preferences in notes
+  if(c.pref&&!gv('c-nt')) sv('c-nt',`Préfs: ${c.pref}`);
+  closeOv('ov-cpick');
+  // Show recognition banner
+  showRecogBanner(c);
+  toast(`${c.fn} ${c.ln||''} sélectionné ✓`,'ok');
+  vib([8]);
+}
+
+/* ─ Recognition banner ─ */
+let _lastRecogClient=null;
+function showRecogBanner(c){
+  _lastRecogClient=c;
+  const b=$('cl-recog-banner');
+  const t=$('cl-recog-txt');
+  if(!b||!t)return;
+  t.textContent=`👋 ${c.fn}${c.co?' ('+c.co+')':''} — client connu${c.stars?' '+('★'.repeat(c.stars)):''}`;
+  b.style.display='flex';
+}
+function useClientPrefs(){
+  if(!_lastRecogClient)return;
+  const c=_lastRecogClient;
+  if(c.pref) sv('c-nt',`Préfs: ${c.pref}`);
+  if(c.addr&&!gv('c-fr')) sv('c-fr',c.addr);
+  if(c.waddr&&!gv('c-to')) sv('c-to',c.waddr);
+  toast('Préférences appliquées ✓','ok');
+  $('cl-recog-banner').style.display='none';
+}
+
+/* ─ Auto-fill & recognition when typing ─ */
+let _telTimeout=null;
+function onClientTelChange(){
+  clearTimeout(_telTimeout);
+  _telTimeout=setTimeout(()=>checkTelMatch(),600);
+}
+async function checkTelMatch(){
+  const tel=gv('c-tel');
+  if(tel.replace(/\D/g,'').length<8)return;
+  const all=await dbGetAll('clients');
+  const c=all.find(c=>c.tel&&c.tel.replace(/\D/g,'')===tel.replace(/\D/g,''));
+  if(c){
+    if(!gv('c-fn'))sv('c-fn',c.fn||'');
+    if(!gv('c-ln'))sv('c-ln',c.ln||'');
+    if(!gv('c-em'))sv('c-em',c.em||'');
+    showRecogBanner(c);
+  }
+}
+function onClientFieldChange(){
+  // Hide banner if user starts typing new info
+  const b=$('cl-recog-banner');
+  if(b) b.style.display='none';
+}
+
+/* ─ Phone contacts API ─ */
+async function pickFromContacts(){
+  if(!('contacts' in navigator&&'ContactsManager' in window)){
+    toast('API Contacts non disponible sur ce navigateur','err');return;
+  }
+  try{
+    const contacts=await navigator.contacts.select(['name','tel','email'],{multiple:false});
+    if(contacts.length){
+      const c=contacts[0];
+      sv('c-fn',(c.name?.[0]||'').split(' ')[0]||'');
+      sv('c-ln',(c.name?.[0]||'').split(' ').slice(1).join(' ')||'');
+      sv('c-tel',c.tel?.[0]||'');
+      sv('c-em',c.email?.[0]||'');
+      await checkTelMatch();
+      toast('Contact importé ✓','ok');vib([8]);
+    }
+  }catch(e){
+    if(e.name!=='AbortError') toast('Accès contacts refusé','err');
+  }
+}
+
+/* ─ Auto-save client logic (called from saveAndGen) ─ */
+async function autoSaveClient(job){
+  const shouldSave=$('save-client-toggle')?.checked!==false;
+  if(!shouldSave)return;
+  const fn=job.fn,ln=job.ln,tel=job.phone,em=job.email;
+  if(!fn&&!tel)return; // not enough info
+
+  const all=await dbGetAll('clients');
+  // Find by phone first, then by name
+  let existing=tel?all.find(c=>c.tel&&c.tel.replace(/\D/g,'')===tel.replace(/\D/g,'')):null;
+  if(!existing&&fn) existing=all.find(c=>c.fn===fn&&c.ln===ln);
+
+  if(existing){
+    // Update trips count and last seen
+    existing.trips=(existing.trips||0)+1;
+    existing.lastSeen=job.date;
+    // Update any new info
+    if(!existing.tel&&tel) existing.tel=tel;
+    if(!existing.em&&em)   existing.em=em;
+    if(!existing.ln&&ln)   existing.ln=ln;
+    await dbPut('clients',existing);
+  } else {
+    // New client
+    const nc={
+      id:Date.now()+'c',fn,ln:ln||'',tel:tel||'',em:em||'',
+      co:'',job:'',addr:'',waddr:'',pref:'',notes:'',stars:0,
+      trips:1,lastSeen:job.date,createdAt:new Date().toISOString()
+    };
+    await dbPut('clients',nc);
+  }
+}
+
+
+
+/* ──────────────────────────────────────────────
+   CA / FINANCES
+────────────────────────────────────────────── */
+let caDay=new Date(NOW);caDay.setHours(0,0,0,0);
+const caISO=d=>d.toISOString().split('T')[0];
+function caLbl(d){
+  const t=new Date();t.setHours(0,0,0,0);
+  const df=Math.round((d-t)/86400000);
+  if(df===0)return"Aujourd'hui";if(df===-1)return"Hier";if(df===1)return"Demain";
+  return d.toLocaleDateString('fr-FR',{weekday:'short',day:'2-digit',month:'long'});
+}
+function caNav(dir){caDay.setDate(caDay.getDate()+dir);renderCA();}
+
+async function renderKPI(){
+  const jobs=await dbGetAll('jobs');
+  const ca=await dbGetAll('ca');
+  const tot=jobs.reduce((s,j)=>s+parseFloat(j.price||0),0);
+  const nett=jobs.reduce((s,j)=>s+parseFloat(j.netEst||0),0);
+  const rec=ca.filter(e=>e.cat!=='charge').reduce((s,e)=>s+parseFloat(e.amt||0),0);
+  const chg=ca.filter(e=>e.cat==='charge').reduce((s,e)=>s+parseFloat(e.amt||0),0);
+  const pend=jobs.filter(j=>j.status==='pending').reduce((s,j)=>s+parseFloat(j.price||0),0);
+  $('kpi-row').innerHTML=`
+    <div class="sbox"><div class="sval" style="color:var(--green)">${tot.toFixed(0)}€</div><div class="slb">CA brut total</div></div>
+    <div class="sbox"><div class="sval" style="color:var(--accent)">${nett.toFixed(0)}€</div><div class="slb">Net estimé</div></div>
+    <div class="sbox"><div class="sval" style="color:${pend>0?'var(--amber)':'var(--txt2)'}">${pend.toFixed(0)}€</div><div class="slb">En attente</div></div>
+    <div class="sbox"><div class="sval" style="color:var(--red)">${chg.toFixed(0)}€</div><div class="slb">Charges CA</div></div>`;
+}
+
+async function renderCA(){
+  $('ca-dl').textContent=caLbl(caDay);
+  const iso=caISO(caDay);
+  const all=await dbGetAll('ca');
+  const day=all.filter(e=>e.date===iso);
+  const rec=day.filter(e=>e.cat!=='charge').reduce((s,e)=>s+parseFloat(e.amt||0),0);
+  const chg=day.filter(e=>e.cat==='charge').reduce((s,e)=>s+parseFloat(e.amt||0),0);
+  const net=rec-chg;
+  $('ca-sum').innerHTML=`
+    <div class="sbox"><div class="sval" style="color:var(--green)">${rec.toFixed(2)}€</div><div class="slb">Recettes</div></div>
+    <div class="sbox"><div class="sval" style="color:var(--red)">${chg.toFixed(2)}€</div><div class="slb">Charges</div></div>
+    <div class="sbox"><div class="sval" style="color:${net>=0?'var(--accent)':'var(--red)'}">${net.toFixed(2)}€</div><div class="slb">Net</div></div>`;
+  if(!day.length){$('ca-list').innerHTML=`<div class="empty"><div class="ei">📊</div><p>Aucune entrée pour ce jour.</p></div>`;return;}
+  const TAG={course:'<span class="cag cag-c">Course</span>',autre:'<span class="cag cag-s">Recette</span>',charge:'<span class="cag cag-r">Charge</span>'};
+  $('ca-list').innerHTML=day.map(e=>`<div class="ca-ent"><div class="ca-row">
+    <div class="ca-el"><div class="ca-et">${e.time||'--:--'}</div><div class="ca-ed">${e.desc||'—'}</div></div>
+    <div class="ca-er">${TAG[e.cat]||''}
+      <div class="ca-ea" style="${e.cat==='charge'?'color:var(--red)':''}">${e.cat==='charge'?'-':''}${parseFloat(e.amt).toFixed(2)}€</div>
+      <button class="btn btn-a btn-sm btn-ic" onclick="editCA(${e.id})" title="Modifier">✏️</button>
+      <button class="btn btn-d btn-sm btn-ic" onclick="delCA(${e.id})" title="Supprimer">🗑</button>
+    </div>
+  </div></div>`).join('');
+}
+
+function openCAModal(eid){
+  $('ca-mt').textContent=eid?'✏️ Modifier':'➕ Ajouter entrée';
+  $('ca-sb').textContent=eid?'💾 Sauvegarder':'Enregistrer';
+  if(!eid){sv('ca-dt',caISO(caDay));sv('ca-tm',pad(NOW.getHours())+':'+pad(NOW.getMinutes()));sv('ca-ds','');sv('ca-am','');$('ca-ct').value='course';}
+  $('ov-ca')._caid=eid||null;openOv('ov-ca');
+}
+async function editCA(id){
+  const all=await dbGetAll('ca');
+  const e=all.find(x=>x.id===id);if(!e)return;
+  openCAModal(id);sv('ca-dt',e.date);sv('ca-tm',e.time);sv('ca-ds',e.desc);sv('ca-am',e.amt);$('ca-ct').value=e.cat||'course';
+}
+async function saveCA(){
+  const amt=gv('ca-am');if(!amt||parseFloat(amt)<=0){toast('Montant invalide','err');return;}
+  const eid=$('ov-ca')._caid;
+  const e={id:eid||(Date.now()),date:gv('ca-dt')||caISO(caDay),time:gv('ca-tm'),desc:gv('ca-ds')||'Entrée',cat:$('ca-ct').value,amt:fa(amt)};
+  await dbPut('ca',e);
+  closeOv('ov-ca');renderCA();renderKPI();toast(eid?'Entrée modifiée !':'Entrée enregistrée !');
+}
+async function delCA(id){showConfirm('Supprimer l\'entrée','Action irréversible.',async()=>{await dbDel('ca',id);renderCA();renderKPI();toast('Entrée supprimée');});}
+
+/* CA cat prefix */
+document.addEventListener('DOMContentLoaded',()=>{
+  const cact=$('ca-ct');if(cact) cact.addEventListener('change',()=>{$('ca-pfx').textContent=cact.value==='charge'?'−':'+';});
+});
+
+/* ──────────────────────────────────────────────
+   EXPORT / IMPORT JSON
+────────────────────────────────────────────── */
+async function exportJSON(){
+  const jobs=await dbGetAll('jobs');
+  const clients=await dbGetAll('clients');
+  const ca=await dbGetAll('ca');
+  const prof=gl('cdp')||{};
+  const data={version:1,exportedAt:new Date().toISOString(),jobs,clients,ca,profile:prof};
+  const a=document.createElement('a');
+  a.href='data:application/json;charset=utf-8,'+encodeURIComponent(JSON.stringify(data,null,2));
+  a.download=`CabbyDesk_backup_${new Date().toISOString().slice(0,10)}.json`;
+  a.click(); toast('Export JSON téléchargé !');
+}
+function importJSON(){$('import-file').click();}
+async function handleImport(e){
+  const file=e.target.files[0];if(!file)return;
+  try{
+    const text=await file.text();
+    const data=JSON.parse(text);
+    if(!data.jobs){toast('Format invalide','err');return;}
+    for(const j of data.jobs||[]) await dbPut('jobs',j);
+    for(const c of data.clients||[]) await dbPut('clients',c);
+    for(const e of data.ca||[]) await dbPut('ca',e);
+    if(data.profile) ls('cdp',data.profile);
+    toast(`Import réussi — ${(data.jobs||[]).length} missions`); loadProfile(); renderHist();
+  }catch{toast('Erreur lors de l\'import','err');}
+  e.target.value='';
+}
+
+/* ──────────────────────────────────────────────
+   CA CSV / PDF
+────────────────────────────────────────────── */
+async function expCSV(){
+  const all=await dbGetAll('ca');if(!all.length){toast('Aucune donnée','err');return;}
+  const rows=[['Date','Heure','Description','Catégorie','Montant €'],...all.map(e=>[e.date,e.time||'',`"${e.desc}"`,e.cat,e.cat==='charge'?`-${e.amt}`:e.amt])];
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(rows.map(r=>r.join(';')).join('\n'));
+  a.download=`CA_CabbyDesk_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click(); toast('CSV téléchargé !');
+}
+async function expPDF(){
+  const {jsPDF}=window.jspdf;const doc=new jsPDF();
+  const p=gl('cdp')||{};
+  const all=(await dbGetAll('ca')).sort((a,b)=>a.date.localeCompare(b.date));
+  const [ar,ag,ab]=[79,142,247];
+  doc.setFillColor(10,11,15);doc.rect(0,0,210,40,'F');
+  doc.setFillColor(ar,ag,ab);doc.rect(0,0,5,40,'F');
+  doc.setTextColor(255,255,255);doc.setFontSize(14);doc.setFont(undefined,'bold');
+  doc.text(p.nm||'TRANSPORT VTC',14,17);
+  doc.setFontSize(7.5);doc.setFont(undefined,'normal');doc.setTextColor(150,153,165);
+  doc.text(`SIRET: ${p.si||'—'} · Licence: ${p.vt||'—'}`,14,25);
+  doc.setTextColor(ar,ag,ab);doc.setFontSize(12);doc.setFont(undefined,'bold');
+  doc.text('RAPPORT CA',195,17,{align:'right'});
+  doc.setFontSize(7);doc.setFont(undefined,'normal');doc.setTextColor(150,153,165);
+  doc.text(`Généré le ${new Date().toLocaleDateString('fr-FR')}`,195,25,{align:'right'});
+  const rec=all.filter(e=>e.cat!=='charge').reduce((s,e)=>s+parseFloat(e.amt),0);
+  const chg=all.filter(e=>e.cat==='charge').reduce((s,e)=>s+parseFloat(e.amt),0);
+  doc.autoTable({startY:50,head:[['Date','Heure','Description','Catégorie','Montant']],
+    body:all.map(e=>[e.date?fmtD(e.date):'—',e.time||'—',e.desc,e.cat,`${e.cat==='charge'?'-':''}${parseFloat(e.amt).toFixed(2)} €`]),
+    theme:'striped',headStyles:{fillColor:[ar,ag,ab],textColor:255,fontStyle:'bold'},
+    styles:{fontSize:9,cellPadding:4},columnStyles:{4:{halign:'right',fontStyle:'bold'}}});
+  const fy=doc.lastAutoTable.finalY+12;
+  doc.setFontSize(9.5);doc.setTextColor(80,80,80);
+  doc.text(`Recettes : ${rec.toFixed(2)} €`,195,fy,{align:'right'});
+  doc.text(`Charges  : ${chg.toFixed(2)} €`,195,fy+7,{align:'right'});
+  doc.setFillColor(ar,ag,ab);doc.roundedRect(118,fy+10,77,13,3,3,'F');
+  doc.setTextColor(255,255,255);doc.setFontSize(11);doc.setFont(undefined,'bold');
+  doc.text(`NET : ${(rec-chg).toFixed(2)} €`,193,fy+18.5,{align:'right'});
+  doc.save(`CA_CabbyDesk_${new Date().toISOString().slice(0,10)}.pdf`);
+  toast('PDF téléchargé !');
+}
+
+/* ──────────────────────────────────────────────
+   CLOUD WEBDAV
+────────────────────────────────────────────── */
+function openCloud(){
+  const p=gl('cdp')||{};
+  sv('dav-url',p.wu);sv('dav-usr',p.wl);sv('dav-pwd',p.wp);
+  sv('dav-fn','cabbydesk-backup.json');
+  openOv('ov-cloud');
+}
+async function testCloud(){
+  const url=gv('dav-url'),usr=gv('dav-usr'),pwd=gv('dav-pwd');
+  if(!url){toast('URL manquante','err');return;}
+  const status=$('cloud-status');status.style.display='block';
+  status.innerHTML='<span class="sync-dot sync-off"></span> Test en cours…';
+  try{
+    const r=await fetch(url,{method:'OPTIONS',headers:{'Authorization':'Basic '+btoa(usr+':'+pwd)}});
+    if(r.ok||r.status===207){status.innerHTML='<span class="sync-dot sync-ok"></span> Connexion réussie ✓';}
+    else{status.innerHTML=`<span class="sync-dot sync-err"></span> Erreur ${r.status}`;}
+  }catch(e){status.innerHTML=`<span class="sync-dot sync-err"></span> Impossible de joindre le serveur (CORS probable en local)`;}
+}
+async function pushCloud(){
+  const url=gv('dav-url'),usr=gv('dav-usr'),pwd=gv('dav-pwd'),fn=gv('dav-fn')||'cabbydesk-backup.json';
+  if(!url||!usr){toast('Configurez d\'abord le cloud','err');return;}
+  const jobs=await dbGetAll('jobs');const clients=await dbGetAll('clients');const ca=await dbGetAll('ca');
+  const data=JSON.stringify({version:1,exportedAt:new Date().toISOString(),jobs,clients,ca,profile:gl('cdp')||{}});
+  const status=$('cloud-status');status.style.display='block';status.innerHTML='<span class="sync-dot sync-off"></span> Envoi en cours…';
+  try{
+    const r=await fetch(url+(url.endsWith('/')?'':'/') +fn,{method:'PUT',headers:{'Authorization':'Basic '+btoa(usr+':'+pwd),'Content-Type':'application/json'},body:data});
+    if(r.ok||r.status===201||r.status===204){status.innerHTML='<span class="sync-dot sync-ok"></span> Sauvegarde envoyée ✓';toast('Cloud sync OK !');}
+    else{status.innerHTML=`<span class="sync-dot sync-err"></span> Erreur ${r.status}: ${r.statusText}`;}
+  }catch(e){status.innerHTML=`<span class="sync-dot sync-err"></span> Erreur réseau — vérifiez l'URL et les identifiants`;}
+}
+async function pullCloud(){
+  const url=gv('dav-url'),usr=gv('dav-usr'),pwd=gv('dav-pwd'),fn=gv('dav-fn')||'cabbydesk-backup.json';
+  if(!url||!usr){toast('Configurez d\'abord le cloud','err');return;}
+  const status=$('cloud-status');status.style.display='block';status.innerHTML='<span class="sync-dot sync-off"></span> Téléchargement…';
+  try{
+    const r=await fetch(url+(url.endsWith('/')?'':'/') +fn,{headers:{'Authorization':'Basic '+btoa(usr+':'+pwd)}});
+    if(!r.ok){status.innerHTML=`<span class="sync-dot sync-err"></span> Erreur ${r.status}`;return;}
+    const data=await r.json();
+    for(const j of data.jobs||[]) await dbPut('jobs',j);
+    for(const c of data.clients||[]) await dbPut('clients',c);
+    for(const e of data.ca||[]) await dbPut('ca',e);
+    if(data.profile) ls('cdp',data.profile);
+    status.innerHTML='<span class="sync-dot sync-ok"></span> Restauration réussie ✓';
+    toast(`${(data.jobs||[]).length} missions restaurées`);loadProfile();
+  }catch(e){status.innerHTML='<span class="sync-dot sync-err"></span> Erreur lors de la restauration';}
+}
+
+/* ──────────────────────────────────────────────
+   SOS BUTTON
+────────────────────────────────────────────── */
+let lastJob=null;
+async function openSOS(){
+  const jobs=await dbGetAll('jobs');
+  lastJob=jobs.length?jobs[jobs.length-1]:null;
+  const p=gl('cdp')||{};
+  const sos=$('sos-info');
+  sos.innerHTML=`<b>Contact d'urgence :</b> ${p.sos||'Non configuré (aller dans Profil)'}<br>
+    <b>Course active :</b> ${lastJob?`${lastJob.client} — ${lastJob.from} → ${lastJob.to}`:'Aucune course active'}<br>
+    <b>Position :</b> <span id="gps-pos">Localisation en cours…</span>`;
+  openOv('ov-sos');vib([30,10,30]);
+  if(navigator.geolocation) navigator.geolocation.getCurrentPosition(pos=>{$('gps-pos').textContent=`${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}`;},()=>{$('gps-pos').textContent='Localisation indisponible';});
+}
+function sendSOS(){
+  const p=gl('cdp')||{};
+  const contact=p.sos||'';
+  if(!contact){toast('Configurez un contact SOS dans Profil','err');return;}
+  const gps=$('gps-pos')?.textContent||'indisponible';
+  const job=lastJob?`Course: ${lastJob.client} — ${lastJob.from} → ${lastJob.to}`:'Aucune course active';
+  const msg=encodeURIComponent(`🆘 ALERTE CabbyDesk\nChauffeur: ${p.dn||p.nm||'inconnu'}\nGPS: ${gps}\n${job}\nHeure: ${new Date().toLocaleTimeString('fr-FR')}`);
+  closeOv('ov-sos');
+  window.open(`sms:${contact}?body=${msg}`);
+  vib([50,20,50,20,50]);
+  toast('Message SOS ouvert');
+}
+
+/* ──────────────────────────────────────────────
+   ETA / WHATSAPP
+────────────────────────────────────────────── */
+function openETA(){
+  const fn=gv('c-fn'),ln=gv('c-ln'),min=10;
+  const name=[fn,ln].filter(Boolean).join(' ')||'le client';
+  $('eta-min').value='10';
+  $('eta-msg').value=`Bonjour ${name},\n\nJe suis en route. Arrivée prévue dans ${min} minutes.\n\nÀ tout de suite !\n\n— ${(gl('cdp')||{}).dn||'Votre chauffeur'}`;
+  openOv('ov-eta');
+}
+function sendETA(channel){
+  const min=gv('eta-min')||'10';
+  const fn=gv('c-fn'),ln=gv('c-ln');
+  const name=[fn,ln].filter(Boolean).join(' ')||'le client';
+  const msg=$('eta-msg').value.replace(/\d+ minutes/,min+' minutes');
+  const tel=gv('c-tel').replace(/\D/g,'');
+  const enc=encodeURIComponent(msg);
+  closeOv('ov-eta');
+  if(channel==='whatsapp') window.open(`https://wa.me/${tel.startsWith('0')?'33'+tel.slice(1):tel}?text=${enc}`);
+  else window.open(`sms:${gv('c-tel')}?body=${enc}`);
+}
+// Update ETA message on min change
+document.addEventListener('DOMContentLoaded',()=>{
+  const em=$('eta-min');if(em) em.addEventListener('input',()=>{
+    const msg=$('eta-msg').value.replace(/\d+ minutes/,em.value+' minutes');
+    $('eta-msg').value=msg;
+  });
+});
+
+/* ──────────────────────────────────────────────
+   PDF ENGINE (Elite)
+────────────────────────────────────────────── */
+async function generatePDF(job,type){
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF();
+  const p=gl('cdp')||{};
+  const isFac=type==='FAC';
+  const [ar,ag,ab]=isFac?[45,212,160]:[79,142,247];
+  const invN=isFac?nextInvNum():(job.num||'');
+  const ref=isFac?`FAC-${String(invN).padStart(5,'0')}`:`BC-${job.num?pad(job.num):String(job.id).slice(-5)}`;
+
+  /* ─ Header ─ */
+  doc.setFillColor(10,11,15);doc.rect(0,0,210,54,'F');
+  doc.setFillColor(ar,ag,ab);doc.rect(0,0,5,54,'F');
+  doc.setTextColor(255,255,255);doc.setFontSize(15);doc.setFont(undefined,'bold');
+  doc.text(p.nm||'TRANSPORT VTC',14,20);
+  doc.setFontSize(7.5);doc.setFont(undefined,'normal');doc.setTextColor(145,148,162);
+  [[`SIRET: ${p.si||'—'}  ·  Licence VTC: ${p.vt||'—'}`],[p.vh&&p.pl?`${p.vh} · ${p.pl}`:p.vh||p.pl||''],[p.ad||''],[p.tel?`Tél: ${p.tel}${p.em?'  ·  '+p.em:''}`:p.em||'']].filter(l=>l[0]).forEach((l,i)=>doc.text(l[0],14,28+i*6));
+  doc.setTextColor(ar,ag,ab);doc.setFontSize(13);doc.setFont(undefined,'bold');
+  doc.text(isFac?'FACTURE':'BON DE COMMANDE',195,20,{align:'right'});
+  doc.setFontSize(7.5);doc.setFont(undefined,'normal');doc.setTextColor(145,148,162);
+  doc.text(`Réf: ${ref}`,195,28,{align:'right'});
+  doc.text(`Émis le: ${new Date().toLocaleDateString('fr-FR')}`,195,34,{align:'right'});
+  if(job.status==='paid'){doc.setTextColor(45,212,160);doc.setFontSize(7);doc.text('✓ PAYÉ',195,40,{align:'right'});}
+
+  /* ─ Client ─ */
+  doc.setTextColor(0,0,0);doc.setFontSize(9.5);doc.setFont(undefined,'normal');
+  doc.text('Adressé à :',14,68);doc.setFontSize(12);doc.setFont(undefined,'bold');
+  doc.text(job.client||'—',14,75);doc.setFont(undefined,'normal');doc.setFontSize(8.5);doc.setTextColor(80,80,80);
+  let cy=82;
+  if(job.phone){doc.text(`Tél : ${job.phone}`,14,cy);cy+=6;}
+  if(job.email){doc.text(`Email : ${job.email}`,14,cy);cy+=6;}
+
+  /* ─ Table ─ */
+  doc.autoTable({
+    startY:cy+8,
+    head:[['Désignation','Date / Heure','Trajet','Détails','Montant TTC']],
+    body:[[isFac?'Prestation transport VTC':'Réservation préalable VTC',
+      `${fmtD(job.date)}\nà ${job.time}`,
+      `Départ: ${job.from}\nArrivée: ${job.to}`,
+      `${job.pax||1} pax · ${job.vtype||'Berline'}${job.pay?'\n'+job.pay:''}`,
+      `${job.price} €`]],
+    theme:'striped',headStyles:{fillColor:[ar,ag,ab],textColor:isFac?0:255,fontStyle:'bold'},
+    styles:{fontSize:9,cellPadding:5},columnStyles:{4:{halign:'right',fontStyle:'bold'}}
+  });
+
+  const fy=doc.lastAutoTable.finalY+16;
+  if(isFac){
+    const tvaN=parseFloat(p.tv||10)/100,prN=parseFloat(job.price);
+    const ht=prN/(1+tvaN),tva=prN-ht;
+    doc.setFontSize(9.5);doc.setTextColor(80,80,80);
+    doc.text(`Total HT : ${fa(ht)} €`,195,fy,{align:'right'});
+    doc.text(`TVA (${Math.round(tvaN*100)}%) : ${fa(tva)} €`,195,fy+7,{align:'right'});
+    doc.setFillColor(ar,ag,ab);doc.roundedRect(118,fy+11,77,13,3,3,'F');
+    doc.setTextColor(0,0,0);doc.setFontSize(11);doc.setFont(undefined,'bold');
+    doc.text(`TOTAL TTC : ${prN.toFixed(2)} €`,193,fy+19.5,{align:'right'});
+    doc.setFont(undefined,'normal');doc.setFontSize(7.5);doc.setTextColor(110,110,110);
+    doc.text(`Règlement par virement : IBAN ${p.ib||'Non renseigné'}`,14,fy+32);
+    doc.text(`Pénalités de retard : taux légal en vigueur + indemnité forfaitaire de 40 €.`,14,fy+38);
+    if(job.notes){doc.setFont(undefined,'italic');doc.text(`Notes : ${job.notes}`,14,fy+46);}
+  } else {
+    doc.setFontSize(7);doc.setTextColor(130,130,130);doc.setFont(undefined,'italic');
+    doc.text(`Art. L.3122-9 Code des transports — Ce document atteste d'une réservation préalable.`,14,fy+14);
+    if(job.pay) doc.text(`Mode de règlement : ${job.pay}`,14,fy+20);
+    if(job.notes) doc.text(`Notes : ${job.notes}`,14,fy+26);
+  }
+
+  /* ─ Signature ─ */
+  if(job.sig){
+    const sigY=isFac?fy+58:fy+36;
+    doc.setFontSize(8);doc.setTextColor(80,80,80);doc.setFont(undefined,'normal');
+    doc.text('Signature client :',14,sigY);
+    try{doc.addImage(job.sig,'PNG',14,sigY+3,60,22);}catch{}
+    doc.line(14,sigY+28,76,sigY+28);
+  }
+
+  /* ─ Footer ─ */
+  doc.setFontSize(6);doc.setTextColor(180,180,180);doc.setFont(undefined,'normal');
+  doc.text(`CabbyDesk Elite · ${new Date().toLocaleString('fr-FR')} · ${ref}`,105,290,{align:'center'});
+
+  const fname=`${ref}_${(job.client||'client').replace(/\s+/g,'_')}.pdf`;
+  const blob=doc.output('blob');
+  if(navigator.canShare&&navigator.canShare({files:[new File([blob],fname,{type:'application/pdf'})]})){
+    try{await navigator.share({files:[new File([blob],fname,{type:'application/pdf'})],title:fname,text:`Voici votre ${isFac?'facture':'bon de commande'}.`});}
+    catch(e){if(e.name!=='AbortError')doc.save(fname);}
+  } else doc.save(fname);
+}
+
+/* ──────────────────────────────────────────────
+   SERVICE WORKER (offline PWA)
+────────────────────────────────────────────── */
+if('serviceWorker'in navigator){
+  const swCode=`const C='cabbydesk-elite-v1';
+self.addEventListener('install',e=>{e.waitUntil(caches.open(C).then(c=>c.addAll(['./'])).then(()=>self.skipWaiting()));});
+self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==C).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));});
+self.addEventListener('fetch',e=>{e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request).then(res=>{if(!res||res.status!==200||res.type==='opaque')return res;const cl=res.clone();caches.open(C).then(c=>c.put(e.request,cl));return res;}).catch(()=>caches.match('./'))));});`;
+  navigator.serviceWorker.register(URL.createObjectURL(new Blob([swCode],{type:'application/javascript'})),{scope:'./'}).catch(()=>{});
+}
+
+/* ──────────────────────────────────────────────
+   PLANNING MODULE
+────────────────────────────────────────────── */
+let planDay=new Date(); planDay.setHours(0,0,0,0);
+let planView='day'; // day | week | all
+let planSort='asc';
+
+function planNav(days){ planDay.setDate(planDay.getDate()+days); renderPlanning(); }
+function planToday(){ planDay=new Date(); planDay.setHours(0,0,0,0); renderPlanning(); }
+function setPlanView(v,el){ planView=v; document.querySelectorAll('[data-pv]').forEach(p=>p.classList.remove('active')); el.classList.add('active'); renderPlanning(); }
+function setPlanSort(s,el){ planSort=s; $('sort-asc').classList.toggle('active',s==='asc'); $('sort-desc').classList.toggle('active',s==='desc'); renderPlanning(); }
+
+async function renderPlanning(){
+  const list=$('plan-list');
+  const summary=$('plan-summary');
+  const lbl=$('plan-date-lbl');
+  if(!list)return;
+
+  // Get all non-archived jobs
+  let jobs=(await dbGetAll('jobs')).filter(j=>!j.archived&&j.date);
+
+  // Filter by view
+  const dayISO=d=>d.toISOString().split('T')[0];
+  if(planView==='day'){
+    const iso=dayISO(planDay);
+    jobs=jobs.filter(j=>j.date===iso);
+    lbl.textContent=planDay.toLocaleDateString('fr-FR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+  } else if(planView==='week'){
+    const start=new Date(planDay); start.setDate(start.getDate()-start.getDay()+1); // Monday
+    const end=new Date(start); end.setDate(end.getDate()+6);
+    jobs=jobs.filter(j=>j.date>=dayISO(start)&&j.date<=dayISO(end));
+    lbl.textContent=`${start.toLocaleDateString('fr-FR',{day:'2-digit',month:'short'})} – ${end.toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'})}`;
+  } else {
+    lbl.textContent='Toutes les missions';
+  }
+
+  // Sort
+  jobs.sort((a,b)=>{
+    const da=`${a.date||''}T${(a.time||'00:00').replace('Non précisé','00:00')}`;
+    const db=`${b.date||''}T${(b.time||'00:00').replace('Non précisé','00:00')}`;
+    return planSort==='asc'?da.localeCompare(db):db.localeCompare(da);
+  });
+
+  // Summary chips
+  const total=jobs.reduce((s,j)=>s+parseFloat(j.price||0),0);
+  const paid=jobs.filter(j=>j.status==='paid').length;
+  const pend=jobs.filter(j=>j.status==='pending').length;
+  summary.innerHTML=`
+    <span style="font-size:.75rem;font-weight:600;color:var(--accent);background:var(--acd);padding:4px 10px;border-radius:12px;">${jobs.length} mission${jobs.length>1?'s':''}</span>
+    <span style="font-size:.75rem;font-weight:600;color:var(--green);background:var(--grd);padding:4px 10px;border-radius:12px;">${total.toFixed(0)}€ CA</span>
+    ${paid?`<span style="font-size:.75rem;font-weight:600;color:var(--green);background:var(--grd);padding:4px 10px;border-radius:12px;">✅ ${paid} payée${paid>1?'s':''}</span>`:''}
+    ${pend?`<span style="font-size:.75rem;font-weight:600;color:var(--amber);background:var(--amd);padding:4px 10px;border-radius:12px;">🕐 ${pend} en attente</span>`:''}`;
+
+  if(!jobs.length){
+    list.innerHTML=`<div class="plan-empty">📭 Aucune mission ${planView==='day'?'ce jour':planView==='week'?'cette semaine':''}</div>`;
+    return;
+  }
+
+  // Identify next upcoming job
+  const nowStr=new Date().toISOString().slice(0,16).replace('T',' ');
+  let nextId=null;
+  for(const j of jobs){
+    const jStr=`${j.date||''} ${(j.time||'').replace('Non précisé','00:00')}`;
+    if(jStr>=nowStr){nextId=j.id;break;}
+  }
+
+  // Group by date if week/all view
+  if(planView==='day'){
+    list.innerHTML=jobs.map(j=>planItemHTML(j,nextId)).join('');
+  } else {
+    const groups={};
+    jobs.forEach(j=>{ if(!groups[j.date])groups[j.date]=[]; groups[j.date].push(j); });
+    const today=dayISO(new Date());
+    list.innerHTML=Object.entries(groups).map(([date,dayJobs])=>{
+      const d=new Date(date+'T12:00:00');
+      const label=date===today?'📅 Aujourd\'hui':d.toLocaleDateString('fr-FR',{weekday:'long',day:'2-digit',month:'long'});
+      return `<div class="plan-day-hdr ${date===today?'today':''}">${label}<span style="margin-left:auto;font-size:.68rem;color:var(--txt3);">${dayJobs.length} course${dayJobs.length>1?'s':''} · ${dayJobs.reduce((s,j)=>s+parseFloat(j.price||0),0).toFixed(0)}€</span></div>${dayJobs.map(j=>planItemHTML(j,nextId)).join('')}`;
+    }).join('');
+  }
+}
+
+function planItemHTML(j,nextId){
+  const nowMs=Date.now();
+  const jMs=new Date(`${j.date}T${(j.time||'08:00').replace('Non précisé','08:00')}`).getTime();
+  const diffMin=Math.round((jMs-nowMs)/60000);
+  const isPast=diffMin<-15;
+  const isNext=j.id===nextId;
+  const isImm=diffMin>=0&&diffMin<=30;
+  let cls=isPast?'past':isNext?'next-up':isImm?'imminent':'';
+  let badge=isNext?`<span class="plan-badge" style="color:var(--accent);">▶ Suivante</span>`:
+             isImm?`<span class="plan-badge" style="color:var(--amber);">⚡ Dans ${diffMin}min</span>`:'';
+  const sp=j.status==='paid'?`<span class="status-pill sp-paid" style="font-size:.6rem;padding:2px 6px;"><span class="sp-dot"></span>Payé</span>`:
+            `<span class="status-pill sp-pend" style="font-size:.6rem;padding:2px 6px;"><span class="sp-dot"></span>Attente</span>`;
+  const tagHtml=j.tag&&TAG_LABELS[j.tag]?`<span class="jtag ${TAG_CLASS[j.tag]||''}" style="font-size:.6rem;">${TAG_LABELS[j.tag]}</span>`:'';
+  return `<div class="plan-item ${cls}" onclick="openJobFromPlan(${j.id})">
+    ${badge}
+    <div class="plan-time">${(j.time||'--:--').replace('Non précisé','--:--')}</div>
+    <div class="plan-body">
+      <div class="plan-name">${j.client||'—'}${j.phone?` <span style="font-size:.68rem;color:var(--txt3);font-family:'DM Mono',monospace;font-weight:400;">${j.phone}</span>`:''}</div>
+      <div class="plan-route"><span>${(j.from||'').substring(0,22)}</span><span style="color:var(--txt3)"> → </span><span>${(j.to||'').substring(0,22)}</span></div>
+      <div class="plan-meta">${sp}${tagHtml}<span class="plan-price">${j.price}€</span>${j.pax&&j.pax!=='1'?`<span style="font-size:.67rem;color:var(--txt3);">${j.pax}pax</span>`:''}</div>
+    </div>
+  </div>`;
+}
+
+async function openJobFromPlan(id){
+  // Navigate to history and expand that job
+  const el=$('tab-history')||$('si-history');
+  if(el){
+    nav('history',el,el.id.startsWith('tab')?'tab':'si');
+    setTimeout(async()=>{
+      await renderHist();
+      const item=$(`hi-${id}`);
+      if(item){item.scrollIntoView({behavior:'smooth',block:'center'});$(`d-${id}`).classList.add('open');}
+    },300);
+  }
+}
+
+/* ──────────────────────────────────────────────
+   PANNEAU / SIGN GENERATOR
+────────────────────────────────────────────── */
+let panBg='#000000', panTxt='#FFFFFF';
+
+function setPanColor(el){
+  document.querySelectorAll('.color-pill').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  panBg=el.dataset.bg;
+  panTxt=el.dataset.txt;
+  renderPanneau();
+}
+
+function renderPanneau(){
+  const canvas=$('pan-canvas'); if(!canvas)return;
+  const format=gv('pan-format')||'landscape';
+  const W=format==='portrait'?794:format==='square'?800:1123;
+  const H=format==='portrait'?1123:format==='square'?800:794;
+  canvas.width=W; canvas.height=H;
+  const ctx=canvas.getContext('2d');
+  const p=gl('cdp')||{};
+
+  // Background
+  ctx.fillStyle=panBg;
+  ctx.fillRect(0,0,W,H);
+
+  // Decorative border
+  if($('pan-border-toggle')?.checked){
+    const pad=28, lw=3;
+    ctx.strokeStyle=panTxt;
+    ctx.globalAlpha=0.25;
+    ctx.lineWidth=lw;
+    ctx.strokeRect(pad,pad,W-pad*2,H-pad*2);
+    ctx.globalAlpha=0.12;
+    ctx.lineWidth=1;
+    ctx.strokeRect(pad+8,pad+8,W-pad*2-16,H-pad*2-16);
+    ctx.globalAlpha=1;
+  }
+
+  // Company name (top)
+  if($('pan-co-toggle')?.checked&&p.nm){
+    ctx.fillStyle=panTxt;
+    ctx.globalAlpha=0.45;
+    ctx.font=`500 ${Math.round(W*0.028)}px Arial,sans-serif`;
+    ctx.textAlign='center';
+    ctx.fillText((p.nm||'').toUpperCase(), W/2, H*0.1);
+    ctx.globalAlpha=1;
+  }
+
+  // Separator line
+  ctx.fillStyle=panTxt;
+  ctx.globalAlpha=0.2;
+  ctx.fillRect(W*0.2,H*0.15,W*0.6,1.5);
+  ctx.globalAlpha=1;
+
+  // Build name text
+  const prefix=gv('pan-prefix');
+  const rawName=gv('pan-name')||'NOM CLIENT';
+  const displayName=[prefix,rawName.toUpperCase()].filter(Boolean).join(' ');
+
+  // Auto font size
+  const font=gv('pan-font')||'Georgia,serif';
+  let fontSize=parseInt(gv('pan-size'))||0;
+  if(!fontSize||gv('pan-size')==='auto'){
+    fontSize=Math.round(W/4.5);
+    ctx.font=`700 ${fontSize}px ${font}`;
+    while(ctx.measureText(displayName).width>W*0.85&&fontSize>22){ fontSize-=2; ctx.font=`700 ${fontSize}px ${font}`; }
+  }
+
+  // Name
+  ctx.fillStyle=panTxt;
+  ctx.font=`700 ${fontSize}px ${font}`;
+  ctx.textAlign='center';
+  ctx.textBaseline='middle';
+  const nameY=H*(gv('pan-sub')?0.48:0.50);
+  ctx.fillText(displayName, W/2, nameY);
+
+  // Subtitle
+  const sub=gv('pan-sub');
+  if(sub){
+    const subSize=Math.round(fontSize*0.32);
+    ctx.font=`400 ${subSize}px ${font}`;
+    ctx.fillStyle=panTxt;
+    ctx.globalAlpha=0.65;
+    ctx.fillText(sub, W/2, nameY+fontSize*0.7);
+    ctx.globalAlpha=1;
+  }
+
+  // Date/time (if toggle)
+  if($('pan-date-toggle')?.checked){
+    const now=new Date();
+    const dtStr=now.toLocaleDateString('fr-FR',{weekday:'long',day:'2-digit',month:'long'})+' · '+now.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+    ctx.font=`400 ${Math.round(W*0.022)}px Arial,sans-serif`;
+    ctx.fillStyle=panTxt;
+    ctx.globalAlpha=0.35;
+    ctx.textAlign='center';
+    ctx.fillText(dtStr, W/2, H*0.88);
+    ctx.globalAlpha=1;
+  }
+
+  // CabbyDesk watermark (bottom)
+  ctx.font=`300 ${Math.round(W*0.016)}px Arial,sans-serif`;
+  ctx.fillStyle=panTxt;
+  ctx.globalAlpha=0.15;
+  ctx.textAlign='center';
+  ctx.fillText('CabbyDesk Elite', W/2, H*0.94);
+  ctx.globalAlpha=1;
+}
+
+function downloadPanneau(fmt){
+  const canvas=$('pan-canvas');if(!canvas)return;
+  const name=gv('pan-name')||'client';
+  const mime=fmt==='jpg'?'image/jpeg':'image/png';
+  const q=fmt==='jpg'?0.95:1;
+  const a=document.createElement('a');
+  a.href=canvas.toDataURL(mime,q);
+  a.download=`Pancarte_${name.replace(/\s+/g,'_')}_CabbyDesk.${fmt}`;
+  a.click();
+  toast(`Pancarte téléchargée en ${fmt.toUpperCase()} ✓`,'ok');
+  vib([10]);
+}
+
+async function sharePanneau(){
+  const canvas=$('pan-canvas');if(!canvas)return;
+  canvas.toBlob(async blob=>{
+    const file=new File([blob],'pancarte-cabbydesk.png',{type:'image/png'});
+    if(navigator.canShare&&navigator.canShare({files:[file]})){
+      try{await navigator.share({files:[file],title:'Pancarte CabbyDesk'});}
+      catch(e){if(e.name!=='AbortError')downloadPanneau('png');}
+    } else downloadPanneau('png');
+  },'image/png');
+}
+
+function savePanneauToHistory(){
+  const canvas=$('pan-canvas');if(!canvas)return;
+  const data=canvas.toDataURL('image/jpeg',0.7);
+  const name=gv('pan-name')||'client';
+  const history=gl('cd_pan_hist')||[];
+  history.unshift({id:Date.now(),name,data,date:new Date().toLocaleDateString('fr-FR'),bg:panBg});
+  ls('cd_pan_hist',history.slice(0,12)); // keep last 12
+  renderPanHistory();
+  toast('Pancarte sauvegardée ✓','ok');
+}
+
+function renderPanHistory(){
+  const container=$('pan-history');if(!container)return;
+  const history=gl('cd_pan_hist')||[];
+  if(!history.length){container.innerHTML=`<div style="grid-column:span 2;text-align:center;padding:20px;font-size:.8rem;color:var(--txt3);">Aucune pancarte sauvegardée.</div>`;return;}
+  container.innerHTML=history.map(h=>`
+    <div class="pan-hist-item" onclick="loadPanHist('${h.id}')">
+      <img src="${h.data}" alt="${h.name}" loading="lazy">
+      <div class="pan-hist-info">
+        <div style="font-weight:600;color:var(--txt);margin-bottom:2px;">${h.name}</div>
+        <div>${h.date}</div>
+        <button class="btn btn-d btn-sm" style="width:100%;margin-top:6px;font-size:.68rem;padding:4px 8px;" onclick="event.stopPropagation();delPanHist(${h.id})">Supprimer</button>
+      </div>
+    </div>`).join('');
+}
+
+function loadPanHist(id){
+  const h=(gl('cd_pan_hist')||[]).find(x=>x.id===id);if(!h)return;
+  sv('pan-name',h.name);
+  // Restore color
+  document.querySelectorAll('.color-pill').forEach(p=>{
+    p.classList.toggle('active',p.dataset.bg===h.bg);
+    if(p.dataset.bg===h.bg){panBg=h.bg;panTxt=p.dataset.txt;}
+  });
+  renderPanneau();
+  toast('Pancarte chargée ✓','info');
+}
+function delPanHist(id){
+  const history=(gl('cd_pan_hist')||[]).filter(x=>x.id!==id);
+  ls('cd_pan_hist',history);renderPanHistory();
+}
+
+/* ──────────────────────────────────────────────
+   BOOT
+────────────────────────────────────────────── */
+async function boot(){
+  await openDB();
+  loadProfile();
+  $('c-dt').valueAsDate=new Date();
+  $('c-tm').value=pad(NOW.getHours())+':'+pad(NOW.getMinutes());
+  sv('ca-dt',caISO(new Date()));
+  sv('ca-tm',pad(NOW.getHours())+':'+pad(NOW.getMinutes()));
+  // Init signature pad after layout
+  setTimeout(()=>{initSig();renderSparkline();renderPanneau();renderPanHistory();},300);
+}
+window.addEventListener('DOMContentLoaded',boot);
+</script>
+</body>
+</html>
